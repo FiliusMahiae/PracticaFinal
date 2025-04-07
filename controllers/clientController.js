@@ -148,6 +148,47 @@ const hardDeleteClient = async (req, res) => {
   }
 };
 
+const getArchivedClients = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const companyId = req.user.company?._id;
+
+    const clients = await Client.findDeleted({
+      $or: [{ createdBy: userId }, { companyId: companyId }],
+    });
+
+    res.json({ clients });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudieron obtener los clientes archivados", 400);
+  }
+};
+
+const recoverClient = async (req, res) => {
+  try {
+    const clientId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(clientId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const client = await Client.findOneDeleted({
+      _id: clientId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!client) {
+      return handleHttpError(res, "Cliente no encontrado o no archivado", 404);
+    }
+
+    await client.restore();
+    res.json({ message: "Cliente restaurado correctamente", client });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo restaurar el cliente", 400);
+  }
+};
+
 module.exports = {
   createClient,
   updateClient,
@@ -155,4 +196,6 @@ module.exports = {
   getClientById,
   softDeleteClient,
   hardDeleteClient,
+  getArchivedClients,
+  recoverClient,
 };
