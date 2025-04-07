@@ -90,9 +90,69 @@ const getClientById = async (req, res) => {
   }
 };
 
+const softDeleteClient = async (req, res) => {
+  try {
+    const clientId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(clientId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const client = await Client.findOne({
+      _id: clientId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!client) {
+      return handleHttpError(
+        res,
+        "Cliente no encontrado o acceso denegado",
+        404
+      );
+    }
+
+    await client.delete();
+    res.json({ message: "Cliente archivado correctamente (soft delete)" });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo archivar el cliente", 400);
+  }
+};
+
+const hardDeleteClient = async (req, res) => {
+  try {
+    const clientId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(clientId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const client = await Client.findOne({
+      _id: clientId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!client) {
+      return handleHttpError(
+        res,
+        "Cliente no encontrado o acceso denegado",
+        404
+      );
+    }
+
+    await Client.deleteOne({ _id: clientId });
+    res.json({ message: "Cliente eliminado permanentemente (hard delete)" });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo eliminar el cliente", 400);
+  }
+};
+
 module.exports = {
   createClient,
   updateClient,
   getClients,
   getClientById,
+  softDeleteClient,
+  hardDeleteClient,
 };
