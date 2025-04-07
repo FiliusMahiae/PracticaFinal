@@ -1,0 +1,171 @@
+### Registro de usuario - Válido
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Registro de usuario - Email inválido (422)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### Registro de usuario - Contraseña corta (422)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "short"
+}
+
+### Registro de usuario - Email duplicado (409)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "anotherpass123"
+}
+
+### Validar email - Código correcto
+PUT http://localhost:8080/api/users/validation
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNTQzMiwiZXhwIjoxNzQzNDQyNjMyfQ.sHpEUoRn_eT_PZ1GNyQcnEF9PBrOFvQwDOeoaELABdc
+Content-Type: application/json
+
+{
+  "code": "337255"
+}
+
+### Validar email - Código incorrecto
+PUT http://localhost:8080/api/users/validation
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDY0NiwiZXhwIjoxNzQzNDQxODQ2fQ.dA_8V4sPeliB93b3-KrIzfudrnGIXIYNmCO9f2jqzGk
+Content-Type: application/json
+
+{
+  "code": "000000"
+}
+
+### Login - Válido
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Login - Email inexistente
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "noexiste@example.com",
+  "password": "password123"
+}
+
+### Login - Contraseña incorrecta
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "wrongpassword"
+}
+
+### Actualizar datos personales (onboarding)
+PUT http://localhost:8080/api/users/onboarding/personal
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Content-Type: application/json
+
+{
+  "nombre": "Ricardo",
+  "apellidos": "Palacios",
+  "nif": "12345678A",
+  "address": {
+    "street": "Carlos V",
+    "number": 22,
+    "postal": 28936,
+    "city": "Móstoles",
+    "province": "Madrid"
+  }
+}
+
+### Actualizar datos de la compañía (usuario normal)
+PATCH http://localhost:8080/api/users/onboarding/company
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Content-Type: application/json
+
+{
+  "companyName": "SERVITOP, SL",
+  "cif": "B12345678",
+  "street": "Carlos V",
+  "number": 22,
+  "postal": 28936,
+  "city": "Móstoles",
+  "province": "Madrid"
+}
+
+### Actualizar datos de la compañía (usuario autonomo)
+PATCH http://localhost:8080/api/users/onboarding/company
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Content-Type: application/json
+
+{}
+
+### Actualizar logo
+PATCH http://localhost:8080/api/users/logo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Content-Type: multipart/form-data; boundary=---011000010111000001101001
+
+-----011000010111000001101001
+Content-Disposition: form-data; name="image"; filename="logo.png"
+Content-Type: image/png
+
+< ./Curriculum2024.pdf
+-----011000010111000001101001--
+
+### Obtener perfil del usuario
+GET http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+
+### Eliminar usuario (soft delete)
+DELETE http://localhost:8080/api/users/?soft=true
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+
+### Eliminar usuario (hard delete)
+DELETE http://localhost:8080/api/users/?soft=false
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+
+### Solicitar recuperación de contraseña
+POST http://localhost:8080/api/users/recover/request
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Resetear contraseña con token de recuperación
+PUT http://localhost:8080/api/users/recover/reset
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyZWNvdmVyIjp0cnVlLCJpYXQiOjE3NDM0MzU0NzAsImV4cCI6MTc0MzQzOTA3MH0.kJUfVJYLZgz5eBg_oZW_6s5vOPnh9DSJDF-j10fJ0Vo
+Content-Type: application/json
+
+{
+  "code": "117912",
+  "newPassword": "newPassword123"
+}
+
+### Invitar a un compañero
+POST http://localhost:8080/api/users/invite
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyZWNvdmVyIjp0cnVlLCJpYXQiOjE3NDM0MzU0NzAsImV4cCI6MTc0MzQzOTA3MH0.kJUfVJYLZgz5eBg_oZW_6s5vOPnh9DSJDF-j10fJ0Vo
+Content-Type: application/json
+
+{
+  "email": "invitee@example.com"
+}
