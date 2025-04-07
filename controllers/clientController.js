@@ -43,4 +43,56 @@ const updateClient = async (req, res) => {
   }
 };
 
-module.exports = { createClient, updateClient };
+const getClients = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const companyId = req.user.company?._id;
+
+    const clients = await Client.find({
+      $or: [{ createdBy: userId }, { companyId: companyId }],
+    });
+
+    res.json({ clients });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudieron obtener los clientes", 400);
+  }
+};
+
+const getClientById = async (req, res) => {
+  try {
+    const clientId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(clientId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const userId = req.user._id;
+    const companyId = req.user.company?._id;
+
+    const client = await Client.findOne({
+      _id: clientId,
+      $or: [{ createdBy: userId }, { companyId: companyId }],
+    });
+
+    if (!client) {
+      return handleHttpError(
+        res,
+        "Cliente no encontrado o acceso denegado",
+        404
+      );
+    }
+
+    res.json({ client });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "Error al obtener el cliente", 400);
+  }
+};
+
+module.exports = {
+  createClient,
+  updateClient,
+  getClients,
+  getClientById,
+};
