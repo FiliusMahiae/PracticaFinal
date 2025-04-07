@@ -7,6 +7,8 @@ const {
   updateClient,
   getClients,
   getClientById,
+  softDeleteClient,
+  hardDeleteClient,
 } = require("../controllers/clientController");
 
 // Crear cliente
@@ -20,5 +22,11 @@ router.get("/", auth, getClients);
 
 // Obtener un cliente por ID
 router.get("/:id", auth, getClientById);
+
+// Soft delete
+router.delete("/:id", auth, softDeleteClient);
+
+// Hard delete con ?hard=true
+router.delete("/:id/force", auth, hardDeleteClient);
 
 module.exports = router;
