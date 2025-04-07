@@ -17,15 +17,15 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Juan Pérez",
-  "email": "juan.perez@cliente.com",
-  "phone": "612345678",
+  "name": "Sergio Mahía",
+  "email": "sergio.mahiarello@gmail.com",
+  "phone": "667514865",
   "address": {
-    "street": "Calle Falsa",
-    "number": 123,
-    "postal": 28080,
-    "city": "Madrid",
-    "province": "Madrid"
+    "street": "Calle Super Real",
+    "number": 12,
+    "postal": 28047,
+    "city": "Jaen",
+    "province": "Jaen"
   }
 }
 
@@ -39,3 +39,12 @@ Content-Type: application/json
   "email": "juan.perez@cliente.com",
   "phone": "698765432"
 }
+
+### Obtener todos los clientes visibles para el usuario
+GET http://localhost:8080/api/client
+Authorization: Bearer {{token}}
+
+### Obtener un cliente por ID
+GET http://localhost:8080/api/client/67f399bfca898ac9197b54be
+Authorization: Bearer {{token}}
+
