@@ -11,6 +11,10 @@ const {
   updateProject,
   getProjects,
   getProjectById,
+  softDeleteProject,
+  hardDeleteProject,
+  getArchivedProjects,
+  restoreProject,
 } = require("../controllers/projectController");
 
 // Crear un proyecto
@@ -24,5 +28,15 @@ router.get("/", auth, getProjects);
 
 // Obtener un proyecto específico
 router.get("/one/:id", auth, getProjectById);
+
+//Borrado
+router.delete("/archive/:id", auth, softDeleteProject);
+router.delete("/:id", auth, hardDeleteProject);
+
+// Listar proyectos archivados de un cliente
+router.get("/archive", auth, getArchivedProjects);
+
+// Restaurar proyecto archivado
+router.patch("/restore/:id", auth, restoreProject);
 
 module.exports = router;
