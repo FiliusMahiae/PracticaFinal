@@ -1,0 +1,34 @@
+### Guardar el token que recibido
+
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDAxNzQxNiwiZXhwIjoxNzQ0MDI0NjE2fQ.hLxkxkQV300xFbAtUxw-JrwseTtVjABfC_rHHEIw9gQ
+
+
+### Crear proyecto
+POST http://localhost:8080/api/project
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nuevo Proyecto",
+  "projectCode": "PRJ001",
+  "email": "proyecto@mail.com",
+  "code": "CODINT01",
+  "clientId": "6612f1a29331f5aa456a3c55",
+  "address": {
+    "street": "Carlos V",
+    "number": 22,
+    "postal": 28936,
+    "city": "Móstoles",
+    "province": "Madrid"
+  }
+}
+
+### Actualizar proyecto
+PUT http://localhost:8080/api/project/67f3a74e806f5734190ac73c
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Proyecto actualizado",
+  "code": "CODINT02"
+}
