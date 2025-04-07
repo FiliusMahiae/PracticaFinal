@@ -11,49 +11,56 @@ Content-Type: application/json
 
 @token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDAxNzQxNiwiZXhwIjoxNzQ0MDI0NjE2fQ.hLxkxkQV300xFbAtUxw-JrwseTtVjABfC_rHHEIw9gQ
 
-### 3. Crear cliente
+### Obtener todos los clientes
+GET http://localhost:8080/api/client
+Authorization: Bearer {{token}}
+
+### Crear un cliente
 POST http://localhost:8080/api/client
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Sergio Mahía",
-  "email": "sergio.mahiarello@gmail.com",
-  "phone": "667514865",
+  "name": "Cliente 1",
+  "email": "cliente@example.com",
+  "phone": "600123456",
   "address": {
-    "street": "Calle Super Real",
-    "number": 12,
-    "postal": 28047,
-    "city": "Jaen",
-    "province": "Jaen"
+    "street": "Calle Real",
+    "number": 99,
+    "postal": 28001,
+    "city": "Madrid",
+    "province": "Madrid"
   }
 }
 
-### 4. Actualizar cliente (reemplaza :id con el ID real del cliente creado)
-PUT http://localhost:8080/api/client/67f398213a3fd1731cac1135
+### Obtener cliente por ID
+GET http://localhost:8080/api/client/67f39e8cfa680d78b52bd830
+Authorization: Bearer {{token}}
+
+### Actualizar cliente
+PUT http://localhost:8080/api/client/67f39e8cfa680d78b52bd830
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Juan Pérez Modificado",
-  "email": "juan.perez@cliente.com",
-  "phone": "698765432"
+  "name": "Cliente Actualizado"
 }
 
-### Obtener todos los clientes visibles para el usuario
-GET http://localhost:8080/api/client
-Authorization: Bearer {{token}}
-
-### Obtener un cliente por ID
-GET http://localhost:8080/api/client/67f399bfca898ac9197b54be
-Authorization: Bearer {{token}}
-
 ### Archivar cliente (soft delete)
-DELETE http://localhost:8080/api/client/67f399bfca898ac9197b54be
+DELETE http://localhost:8080/api/client/archive/67f3a08ba57aa840151e8c3c
+Authorization: Bearer {{token}}
+
+### Obtener clientes archivados
+GET http://localhost:8080/api/client/archive
+Authorization: Bearer {{token}}
+
+### Restaurar cliente archivado
+PATCH http://localhost:8080/api/client/restore/67f3a08ba57aa840151e8c3c
 Authorization: Bearer {{token}}
 
 ### Eliminar cliente completamente (hard delete)
-DELETE http://localhost:8080/api/client/67f39c53b80d6e3b0731e5ec/force
+DELETE http://localhost:8080/api/client/67f3a08ba57aa840151e8c3c
 Authorization: Bearer {{token}}
+
 
 
