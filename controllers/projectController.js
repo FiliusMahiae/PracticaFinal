@@ -114,4 +114,116 @@ const getProjectById = async (req, res) => {
   }
 };
 
-module.exports = { createProject, updateProject, getProjects, getProjectById };
+const softDeleteProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!project) {
+      return handleHttpError(
+        res,
+        "Proyecto no encontrado o no autorizado",
+        404
+      );
+    }
+
+    await project.delete();
+    res.json({ message: "Proyecto archivado correctamente" });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo archivar el proyecto", 400);
+  }
+};
+
+const hardDeleteProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!project) {
+      return handleHttpError(
+        res,
+        "Proyecto no encontrado o no autorizado",
+        404
+      );
+    }
+
+    await Project.deleteOne({ _id: projectId });
+    res.json({ message: "Proyecto eliminado permanentemente" });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo eliminar el proyecto", 400);
+  }
+};
+
+const getArchivedProjects = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const companyId = req.user.company?._id;
+
+    const projects = await Project.findDeleted({
+      $or: [{ createdBy: userId }, { companyId: companyId }],
+    }).populate("clientId");
+
+    res.json({ projects });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(
+      res,
+      "No se pudieron obtener los proyectos archivados",
+      400
+    );
+  }
+};
+
+const restoreProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const project = await Project.findOneDeleted({
+      _id: projectId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    });
+
+    if (!project) {
+      return handleHttpError(res, "Proyecto no encontrado o no archivado", 404);
+    }
+
+    await project.restore();
+    res.json({ message: "Proyecto restaurado correctamente", project });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudo restaurar el proyecto", 400);
+  }
+};
+
+module.exports = {
+  createProject,
+  updateProject,
+  getProjects,
+  getProjectById,
+  softDeleteProject,
+  hardDeleteProject,
+  getArchivedProjects,
+  restoreProject,
+};
