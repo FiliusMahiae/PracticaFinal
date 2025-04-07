@@ -48,3 +48,12 @@ Authorization: Bearer {{token}}
 GET http://localhost:8080/api/client/67f399bfca898ac9197b54be
 Authorization: Bearer {{token}}
 
+### Archivar cliente (soft delete)
+DELETE http://localhost:8080/api/client/67f399bfca898ac9197b54be
+Authorization: Bearer {{token}}
+
+### Eliminar cliente completamente (hard delete)
+DELETE http://localhost:8080/api/client/67f39c53b80d6e3b0731e5ec/force
+Authorization: Bearer {{token}}
+
+
