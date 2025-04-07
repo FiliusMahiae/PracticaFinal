@@ -1,0 +1,41 @@
+### Login
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "newPassword123"
+}
+
+### Guardar el token que recibido
+
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDAxNzQxNiwiZXhwIjoxNzQ0MDI0NjE2fQ.hLxkxkQV300xFbAtUxw-JrwseTtVjABfC_rHHEIw9gQ
+
+### 3. Crear cliente
+POST http://localhost:8080/api/client
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Juan Pérez",
+  "email": "juan.perez@cliente.com",
+  "phone": "612345678",
+  "address": {
+    "street": "Calle Falsa",
+    "number": 123,
+    "postal": 28080,
+    "city": "Madrid",
+    "province": "Madrid"
+  }
+}
+
+### 4. Actualizar cliente (reemplaza :id con el ID real del cliente creado)
+PUT http://localhost:8080/api/client/67f398213a3fd1731cac1135
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Juan Pérez Modificado",
+  "email": "juan.perez@cliente.com",
+  "phone": "698765432"
+}
