@@ -1,6 +1,6 @@
 ### Guardar el token que recibido
 
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDAxNzQxNiwiZXhwIjoxNzQ0MDI0NjE2fQ.hLxkxkQV300xFbAtUxw-JrwseTtVjABfC_rHHEIw9gQ
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDA0NzgwNCwiZXhwIjoxNzQ0MDU1MDA0fQ.Jb03MUP0ODc4OkvEcEdVw2SrU4w3MghY8fH7XvL4jPQ
 
 
 ### Crear proyecto
@@ -9,7 +9,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Armando CASAS",
+  "name": "Armando MAQUETAS",
   "projectCode": "PRM001",
   "email": "proyecto@mail.com",
   "code": "CODINT01",
@@ -38,5 +38,21 @@ GET http://localhost:8080/api/project
 Authorization: Bearer {{token}}
 
 ### Obtener un proyecto específico
-GET http://localhost:8080/api/project/one/67f3a891851ea0dd3a53a9a9
+GET http://localhost:8080/api/project/one/67f4115850437a84658ab05b
+Authorization: Bearer {{token}}
+
+### Archivar (soft delete) un proyecto
+DELETE http://localhost:8080/api/project/archive/67f4115850437a84658ab05b
+Authorization: Bearer {{token}}
+
+### Eliminar (hard delete) un proyecto definitivamente
+DELETE http://localhost:8080/api/project/67f4115850437a84658ab05b
+Authorization: Bearer {{token}}
+
+### Obtener todos los proyectos archivados
+GET http://localhost:8080/api/project/archive
+Authorization: Bearer {{token}}
+
+### Restaurar un proyecto archivado
+PATCH http://localhost:8080/api/project/restore/67f4115850437a84658ab05b
 Authorization: Bearer {{token}}
