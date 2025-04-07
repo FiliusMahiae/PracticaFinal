@@ -9,8 +9,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Nuevo Proyecto",
-  "projectCode": "PRJ001",
+  "name": "Armando CASAS",
+  "projectCode": "PRM001",
   "email": "proyecto@mail.com",
   "code": "CODINT01",
   "clientId": "6612f1a29331f5aa456a3c55",
@@ -32,3 +32,11 @@ Content-Type: application/json
   "name": "Proyecto actualizado",
   "code": "CODINT02"
 }
+
+### Obtener todos los proyectos
+GET http://localhost:8080/api/project
+Authorization: Bearer {{token}}
+
+### Obtener un proyecto específico
+GET http://localhost:8080/api/project/one/67f3a891851ea0dd3a53a9a9
+Authorization: Bearer {{token}}
