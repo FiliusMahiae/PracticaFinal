@@ -70,4 +70,48 @@ const updateProject = async (req, res) => {
   }
 };
 
-module.exports = { createProject, updateProject };
+const getProjects = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const companyId = req.user.company?._id;
+
+    const projects = await Project.find({
+      $or: [{ createdBy: userId }, { companyId: companyId }],
+    }).populate("clientId");
+
+    res.json({ projects });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudieron obtener los proyectos", 400);
+  }
+};
+
+const getProjectById = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+    }).populate("clientId");
+
+    if (!project) {
+      return handleHttpError(
+        res,
+        "Proyecto no encontrado o no autorizado",
+        404
+      );
+    }
+
+    res.json({ project });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "Error al obtener el proyecto", 400);
+  }
+};
+
+module.exports = { createProject, updateProject, getProjects, getProjectById };
