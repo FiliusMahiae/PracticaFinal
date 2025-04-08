@@ -26,4 +26,22 @@ const createDeliveryNote = async (req, res) => {
   }
 };
 
-module.exports = { createDeliveryNote };
+const getDeliveryNotes = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const deliveryNotes = await DeliveryNote.find({
+      createdBy: userId,
+    });
+
+    res.json({ deliveryNotes });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "No se pudieron obtener los albaranes", 400);
+  }
+};
+
+module.exports = {
+  createDeliveryNote,
+  getDeliveryNotes,
+};
