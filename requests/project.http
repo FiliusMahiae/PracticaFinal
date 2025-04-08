@@ -1,6 +1,6 @@
 ### Guardar el token que recibido
 
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDA0NzgwNCwiZXhwIjoxNzQ0MDU1MDA0fQ.Jb03MUP0ODc4OkvEcEdVw2SrU4w3MghY8fH7XvL4jPQ
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDEzMDI0MiwiZXhwIjoxNzQ0MTM3NDQyfQ.hYgo5aLH3cbz8F9blH7-RjUojxIbBsKo4RnEEp3NqBE
 
 
 ### Crear proyecto
@@ -13,7 +13,7 @@ Content-Type: application/json
   "projectCode": "PRM001",
   "email": "proyecto@mail.com",
   "code": "CODINT01",
-  "clientId": "6612f1a29331f5aa456a3c55",
+  "clientId": "67f3a083a57aa840151e8c3a",
   "address": {
     "street": "Carlos V",
     "number": 22,

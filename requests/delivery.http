@@ -6,7 +6,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "projectId": "67f4114b50437a84658ab057",
+  "projectId": "67f551616517559dbe7f7347",
   "description": "Instalación completa realizada el viernes",
   "workEntries": [
     {
@@ -35,7 +35,12 @@ GET http://localhost:8080/api/deliverynote
 Authorization: Bearer {{token}}
 
 ### Obtener un albarán por ID
-GET http://localhost:8080/api/deliverynote/67f54bb31587fd144f61481b
+GET http://localhost:8080/api/deliverynote/67f551786517559dbe7f7349
 Authorization: Bearer {{token}}
+
+### Descargar PDF del albarán
+GET http://localhost:8080/api/deliverynote/pdf/67f551786517559dbe7f7349
+Authorization: Bearer {{token}}
+
 
 

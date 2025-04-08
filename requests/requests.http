@@ -81,7 +81,7 @@ Content-Type: application/json
 
 ### Actualizar datos personales (onboarding)
 PUT http://localhost:8080/api/users/onboarding/personal
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDEzMDI0MiwiZXhwIjoxNzQ0MTM3NDQyfQ.hYgo5aLH3cbz8F9blH7-RjUojxIbBsKo4RnEEp3NqBE
 Content-Type: application/json
 
 {
