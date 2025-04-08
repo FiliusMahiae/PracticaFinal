@@ -29,3 +29,8 @@ Content-Type: application/json
     }
   ]
 }
+
+### Obtener todos los albaranes creados por el usuario
+GET http://localhost:8080/api/deliverynote
+Authorization: Bearer {{token}}
+
