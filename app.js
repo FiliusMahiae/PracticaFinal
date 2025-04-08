@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 const dbConnect = require("./config/db");
 const loggerStream = require("./utils/handleLogger");
 const morganBody = require("morgan-body");
