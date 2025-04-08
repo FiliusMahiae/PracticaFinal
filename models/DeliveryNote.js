@@ -31,6 +31,7 @@ const DeliveryNoteSchema = new Schema(
     ],
 
     date: { type: Date, default: Date.now },
+    signature: { type: String, default: "" },
   },
   {
     timestamps: true,
