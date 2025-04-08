@@ -1,6 +1,9 @@
+const PDFDocument = require("pdfkit");
 const DeliveryNote = require("../models/DeliveryNote");
-const mongoose = require("mongoose");
+const User = require("../models/User");
+const Project = require("../models/Project");
 const { handleHttpError } = require("../utils/handleError");
+const mongoose = require("mongoose");
 
 const createDeliveryNote = async (req, res) => {
   try {
@@ -74,8 +77,109 @@ const getDeliveryNoteById = async (req, res) => {
   }
 };
 
+const getDeliveryNotePdf = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+    const userId = req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(noteId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const note = await DeliveryNote.findOne({ _id: noteId })
+      .populate("createdBy", "email name role")
+      .populate({
+        path: "projectId",
+        populate: {
+          path: "clientId",
+          model: "Client",
+        },
+      });
+
+    if (!note) {
+      return handleHttpError(res, "Albarán no encontrado", 404);
+    }
+
+    const isOwner = note.createdBy._id.equals(userId);
+    const isGuest =
+      req.user.role === "guest" &&
+      note.createdBy._id.equals(req.user.invitedBy);
+
+    if (!isOwner && !isGuest) {
+      return handleHttpError(res, "No autorizado para ver este albarán", 403);
+    }
+
+    // Generar PDF
+    const doc = new PDFDocument();
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=albaran_${noteId}.pdf`
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    doc.pipe(res);
+
+    doc.fontSize(20).text("Albarán de Proyecto", { align: "center" });
+    doc.moveDown();
+
+    // Proyecto y Cliente
+    doc.fontSize(14).text(`Proyecto: ${note.projectId.name}`);
+    doc.text(`Código: ${note.projectId.projectCode}`);
+    doc.text(`Cliente: ${note.projectId.clientId?.name || "Sin cliente"}`);
+    doc.text(
+      `Dirección del proyecto: ${note.projectId.address?.street || "-"}, ${
+        note.projectId.address?.city || "-"
+      }`
+    );
+    doc.moveDown();
+
+    // Usuario
+    doc
+      .fontSize(14)
+      .text(`Creado por: ${note.createdBy.name || note.createdBy.email}`);
+    doc.text(`Fecha: ${note.date.toLocaleDateString()}`);
+    doc.moveDown();
+
+    // Descripción
+    if (note.description) {
+      doc.fontSize(14).text("Descripción:");
+      doc.fontSize(12).text(note.description);
+      doc.moveDown();
+    }
+
+    // Work entries
+    if (note.workEntries.length > 0) {
+      doc.fontSize(14).text("Personas y Horas:");
+      note.workEntries.forEach((entry) => {
+        doc.fontSize(12).text(`- ${entry.person}: ${entry.hours} horas`);
+      });
+      doc.moveDown();
+    }
+
+    // Materiales
+    if (note.materialEntries.length > 0) {
+      doc.fontSize(14).text("Materiales:");
+      note.materialEntries.forEach((entry) => {
+        doc.fontSize(12).text(`- ${entry.name}: ${entry.quantity} unidades`);
+      });
+      doc.moveDown();
+    }
+
+    // Firma (si implementas un campo "signature" en el modelo)
+    if (note.signature) {
+      doc.fontSize(14).text("Firma:");
+      doc.image(note.signature, { width: 150 });
+    }
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "Error al generar el PDF", 500);
+  }
+};
+
 module.exports = {
   createDeliveryNote,
   getDeliveryNotes,
   getDeliveryNoteById,
+  getDeliveryNotePdf,
 };
