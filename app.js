@@ -1,8 +1,22 @@
 require("dotenv").config();
+
 const express = require("express");
 const dbConnect = require("./config/db");
+const loggerStream = require("./utils/handleLogger");
+const morganBody = require("morgan-body");
 
 const app = express();
+
+morganBody(app, {
+  noColors: true,
+  skip: function (req, res) {
+    return res.statusCode < 400;
+  },
+  stream: loggerStream,
+});
+
+//Manejo de cors
+app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
