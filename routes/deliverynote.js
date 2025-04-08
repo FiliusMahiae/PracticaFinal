@@ -5,6 +5,7 @@ const { validateDeliveryNote } = require("../validators/deliveryNoteValidator");
 const {
   createDeliveryNote,
   getDeliveryNotes,
+  getDeliveryNoteById,
 } = require("../controllers/deliveryNoteController");
 
 // Crear albarán (simple o múltiple)
@@ -12,5 +13,8 @@ router.post("/", auth, validateDeliveryNote, createDeliveryNote);
 
 //Recoger todos los albaranes
 router.get("/", auth, getDeliveryNotes);
+
+//Recoger un solo albaran
+router.get("/:id", auth, getDeliveryNoteById);
 
 module.exports = router;
