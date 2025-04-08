@@ -1,5 +1,5 @@
-const handleHttpError = (res, message, code = 403) => {
-  res.status(code).send(message);
+const handleHttpError = (res, messageSend, code = 403) => {
+  return res.status(code).json({ message: messageSend });
 };
 
 module.exports = { handleHttpError };
