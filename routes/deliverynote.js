@@ -6,6 +6,7 @@ const {
   createDeliveryNote,
   getDeliveryNotes,
   getDeliveryNoteById,
+  getDeliveryNotePdf,
 } = require("../controllers/deliveryNoteController");
 
 // Crear albarán (simple o múltiple)
@@ -16,5 +17,8 @@ router.get("/", auth, getDeliveryNotes);
 
 //Recoger un solo albaran
 router.get("/:id", auth, getDeliveryNoteById);
+
+//Crear PDF
+router.get("/pdf/:id", auth, getDeliveryNotePdf);
 
 module.exports = router;
