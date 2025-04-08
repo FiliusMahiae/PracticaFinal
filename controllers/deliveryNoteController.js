@@ -177,9 +177,44 @@ const getDeliveryNotePdf = async (req, res) => {
   }
 };
 
+const deleteDeliveryNote = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(noteId)) {
+      return handleHttpError(res, "ID inválido", 400);
+    }
+
+    const note = await DeliveryNote.findOne({
+      _id: noteId,
+      createdBy: req.user._id,
+    });
+
+    if (!note) {
+      return handleHttpError(res, "Albarán no encontrado o no autorizado", 404);
+    }
+
+    if (note.signature && note.signature.trim() !== "") {
+      return handleHttpError(
+        res,
+        "No se puede eliminar un albarán firmado",
+        403
+      );
+    }
+
+    await DeliveryNote.deleteOne({ _id: noteId });
+
+    res.json({ message: "Albarán eliminado correctamente" });
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "Error al eliminar el albarán", 500);
+  }
+};
+
 module.exports = {
   createDeliveryNote,
   getDeliveryNotes,
   getDeliveryNoteById,
   getDeliveryNotePdf,
+  deleteDeliveryNote,
 };
