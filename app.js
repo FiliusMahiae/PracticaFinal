@@ -8,6 +8,7 @@ const morganBody = require("morgan-body");
 
 const app = express();
 
+// Middleware de logs para errores
 morganBody(app, {
   noColors: true,
   skip: function (req, res) {
@@ -16,7 +17,7 @@ morganBody(app, {
   stream: loggerStream,
 });
 
-//Manejo de cors
+// Manejo de CORS
 app.use(cors());
 
 // Middleware para parsear JSON
@@ -25,10 +26,15 @@ app.use(express.json());
 // Montar las rutas dinámicas bajo el prefijo /api
 app.use("/api", require("./routes"));
 
-// Conectar a la BBDD y arrancar el servidor
+let server;
+
 dbConnect().then(() => {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
-  });
+  if (process.env.NODE_ENV !== "test") {
+    server = app.listen(PORT, () => {
+      console.log(`Servidor escuchando en el puerto ${PORT}`);
+    });
+  }
 });
+
+module.exports = { app, server };
