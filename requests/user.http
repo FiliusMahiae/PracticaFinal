@@ -58,7 +58,7 @@ Content-Type: application/json
 
 {
   "email": "test@example.com",
-  "password": "newPassword123"
+  "password": "password123"
 }
 
 ### Login - Email inexistente
