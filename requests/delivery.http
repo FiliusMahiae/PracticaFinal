@@ -1,0 +1,31 @@
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDEyODYxNywiZXhwIjoxNzQ0MTM1ODE3fQ.De-r4cva0rfh8TLvZfJYKwz3TxuFONEJF70UGbaEBtU
+
+### Crear albarán con personas y materiales
+POST http://localhost:8080/api/deliverynote
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "projectId": "6613b2f82b92a532a482fc33",
+  "description": "Instalación completa realizada el viernes",
+  "workEntries": [
+    {
+      "person": "Carlos Fernández",
+      "hours": 6
+    },
+    {
+      "person": "Ana García",
+      "hours": 4
+    }
+  ],
+  "materialEntries": [
+    {
+      "name": "Cables",
+      "quantity": 80
+    },
+    {
+      "name": "Interruptores",
+      "quantity": 15
+    }
+  ]
+}
