@@ -42,5 +42,10 @@ Authorization: Bearer {{token}}
 GET http://localhost:8080/api/deliverynote/pdf/67f551786517559dbe7f7349
 Authorization: Bearer {{token}}
 
+### Eliminar albarán (si no está firmado)
+DELETE http://localhost:8080/api/deliverynote/67f551786517559dbe7f7349
+Authorization: Bearer {{token}}
+
+
 
 
