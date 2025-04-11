@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "email": "test@example.com",
-  "password": "newPassword123"
+  "password": "Password123"
 }
 
 ### Guardar el token que recibido
