@@ -1,7 +1,10 @@
-const PDFDocument = require("pdfkit");
 const DeliveryNote = require("../models/DeliveryNote");
 const User = require("../models/User");
 const Project = require("../models/Project");
+const { Readable } = require("stream");
+const generatePdfBuffer = require("../utils/handlePdf");
+const uploadToPinata = require("../utils/handleUploadIPFS");
+
 const { handleHttpError } = require("../utils/handleError");
 const mongoose = require("mongoose");
 
@@ -82,98 +85,87 @@ const getDeliveryNotePdf = async (req, res) => {
     const noteId = req.params.id;
     const userId = req.user._id;
 
-    if (!mongoose.Types.ObjectId.isValid(noteId)) {
-      return handleHttpError(res, "ID inválido", 400);
-    }
-
     const note = await DeliveryNote.findOne({ _id: noteId })
       .populate("createdBy", "email name role")
       .populate({
         path: "projectId",
-        populate: {
-          path: "clientId",
-          model: "Client",
-        },
+        populate: { path: "clientId", model: "Client" },
       });
 
-    if (!note) {
-      return handleHttpError(res, "Albarán no encontrado", 404);
-    }
+    if (!note) return handleHttpError(res, "Albarán no encontrado", 404);
 
     const isOwner = note.createdBy._id.equals(userId);
     const isGuest =
       req.user.role === "guest" &&
       note.createdBy._id.equals(req.user.invitedBy);
-
-    if (!isOwner && !isGuest) {
-      return handleHttpError(res, "No autorizado para ver este albarán", 403);
-    }
+    if (!isOwner && !isGuest) return handleHttpError(res, "No autorizado", 403);
 
     // Generar PDF
-    const doc = new PDFDocument();
+    const buffer = await generatePdfBuffer(note);
+
+    // Subir a IPFS
+    const result = await uploadToPinata(buffer, `albaran-${noteId}.pdf`);
+    note.pdfUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+    await note.save();
+
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=albaran_${noteId}.pdf`
+      `attachment; filename=albaran-${noteId}.pdf`
     );
     res.setHeader("Content-Type", "application/pdf");
-    doc.pipe(res);
-
-    doc.fontSize(20).text("Albarán de Proyecto", { align: "center" });
-    doc.moveDown();
-
-    // Proyecto y Cliente
-    doc.fontSize(14).text(`Proyecto: ${note.projectId.name}`);
-    doc.text(`Código: ${note.projectId.projectCode}`);
-    doc.text(`Cliente: ${note.projectId.clientId?.name || "Sin cliente"}`);
-    doc.text(
-      `Dirección del proyecto: ${note.projectId.address?.street || "-"}, ${
-        note.projectId.address?.city || "-"
-      }`
-    );
-    doc.moveDown();
-
-    // Usuario
-    doc
-      .fontSize(14)
-      .text(`Creado por: ${note.createdBy.name || note.createdBy.email}`);
-    doc.text(`Fecha: ${note.date.toLocaleDateString()}`);
-    doc.moveDown();
-
-    // Descripción
-    if (note.description) {
-      doc.fontSize(14).text("Descripción:");
-      doc.fontSize(12).text(note.description);
-      doc.moveDown();
-    }
-
-    // Work entries
-    if (note.workEntries.length > 0) {
-      doc.fontSize(14).text("Personas y Horas:");
-      note.workEntries.forEach((entry) => {
-        doc.fontSize(12).text(`- ${entry.person}: ${entry.hours} horas`);
-      });
-      doc.moveDown();
-    }
-
-    // Materiales
-    if (note.materialEntries.length > 0) {
-      doc.fontSize(14).text("Materiales:");
-      note.materialEntries.forEach((entry) => {
-        doc.fontSize(12).text(`- ${entry.name}: ${entry.quantity} unidades`);
-      });
-      doc.moveDown();
-    }
-
-    // Firma (si implementas un campo "signature" en el modelo)
-    if (note.signature) {
-      doc.fontSize(14).text("Firma:");
-      doc.image(note.signature, { width: 150 });
-    }
-
-    doc.end();
+    Readable.from(buffer).pipe(res);
   } catch (err) {
     console.error(err);
     handleHttpError(res, "Error al generar el PDF", 500);
+  }
+};
+
+const signDeliveryNote = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+
+    const note = await DeliveryNote.findOne({
+      _id: noteId,
+      createdBy: req.user._id,
+    })
+      .populate("createdBy", "email name")
+      .populate({
+        path: "projectId",
+        populate: { path: "clientId", model: "Client" },
+      });
+
+    if (!note)
+      return handleHttpError(res, "Albarán no encontrado o no autorizado", 404);
+    if (!req.file) return handleHttpError(res, "No se ha subido la firma", 400);
+
+    // Subir firma
+    const imageUpload = await uploadToPinata(
+      req.file.buffer,
+      `firma-${noteId}.png`
+    );
+    const signatureUrl = `https://gateway.pinata.cloud/ipfs/${imageUpload.IpfsHash}`;
+    note.signature = signatureUrl;
+
+    // Generar nuevo PDF con firma
+    const buffer = await generatePdfBuffer(note);
+
+    // Subir a IPFS y actualizar pdfUrl si antes era un PDF sin firma
+    const newUpload = await uploadToPinata(
+      buffer,
+      `albaran-${noteId}-firmado.pdf`
+    );
+    note.pdfUrl = `https://gateway.pinata.cloud/ipfs/${newUpload.IpfsHash}`;
+    await note.save();
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=albaran-${noteId}-firmado.pdf`
+    );
+    res.setHeader("Content-Type", "application/pdf");
+    Readable.from(buffer).pipe(res);
+  } catch (err) {
+    console.error(err);
+    handleHttpError(res, "Error al firmar el albarán", 500);
   }
 };
 
@@ -216,5 +208,6 @@ module.exports = {
   getDeliveryNotes,
   getDeliveryNoteById,
   getDeliveryNotePdf,
+  signDeliveryNote,
   deleteDeliveryNote,
 };
