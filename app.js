@@ -12,7 +12,7 @@ const app = express();
 morganBody(app, {
   noColors: true,
   skip: function (req, res) {
-    return res.statusCode < 400;
+    return res.statusCode < 500;
   },
   stream: loggerStream,
 });
