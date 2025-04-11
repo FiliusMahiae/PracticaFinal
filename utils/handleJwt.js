@@ -16,7 +16,7 @@ const verifyToken = async (tokenJwt) => {
   try {
     return jwt.verify(tokenJwt, process.env.JWT_SECRET);
   } catch (err) {
-    console.log(err);
+    throw new Error("Token inválido");
   }
 };
 
