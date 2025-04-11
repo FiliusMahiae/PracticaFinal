@@ -59,10 +59,5 @@ Content-Type: image/png
 DELETE http://localhost:8080/api/deliverynote/6615b0f2894216ad26a5e999
 Authorization: Bearer {{token}}
 
-### Eliminar albarán (si no está firmado)
-DELETE http://localhost:8080/api/deliverynote/67f551786517559dbe7f7349
-Authorization: Bearer {{token}}
-
-
 
 
