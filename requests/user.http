@@ -133,7 +133,7 @@ Content-Type: image/png
 
 ### Obtener perfil del usuario
 GET http://localhost:8080/api/users/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VpYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
 
 ### Eliminar usuario (soft delete)
 DELETE http://localhost:8080/api/users/?soft=true
