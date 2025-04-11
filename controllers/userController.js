@@ -232,21 +232,18 @@ const getProfile = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const userId = req.user._id;
-    // Por defecto se asume soft delete. Si el query "soft" es igual a "false", se hace hard delete.
     const soft = req.query.soft !== "false";
-    let result;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return handleHttpError(res, "Usuario no encontrado", 404);
+    }
+
     if (soft) {
-      // Soft delete usando el método "delete" proporcionado por mongoose-delete
-      result = await User.delete({ _id: userId });
-      // Si result no es válido, consideramos que no se encontró el usuario
-      if (!result) {
-        return handleHttpError(res, "Usuario no encontrado", 404);
-      }
+      await user.delete();
       return res.json({ message: "Usuario eliminado (soft delete)" });
     } else {
-      // Hard delete: borramos físicamente el documento con deleteOne
-      result = await User.deleteOne({ _id: userId });
-      // result.deletedCount indica si se borró algún documento
+      const result = await User.deleteOne({ _id: userId });
       if (!result.deletedCount) {
         return handleHttpError(res, "Usuario no encontrado", 404);
       }
@@ -276,11 +273,9 @@ const inviteUser = async (req, res) => {
       email,
       password: hashedPassword,
       role: "guest",
-      // Copiamos los datos de compañía del usuario que invita
-      companyName: inviter.companyName,
-      cif: inviter.cif,
-      direccion: inviter.direccion,
+      company: { ...inviter.company }, // Copia toda la info de empresa
     });
+
     await newUser.save();
     return res.json({
       message: "Usuario invitado correctamente",
