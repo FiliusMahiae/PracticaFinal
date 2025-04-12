@@ -10,10 +10,7 @@ const dbConnect = async () => {
   mongoose.set("strictQuery", false);
 
   try {
-    await mongoose.connect(db_uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(db_uri);
     console.log("Conectado a la BBDD");
   } catch (error) {
     console.error(`Error conectando a la BD: ${error}`);
