@@ -6,14 +6,6 @@ const { app } = require("../app");
 const UserModel = require("../models/User"); // Ajusta la ruta a tu modelo de usuario si es diferente
 const path = require("path");
 
-beforeAll(async () => {
-  await mongoose.connection.once("connected", () => {});
-});
-
-afterAll(async () => {
-  await mongoose.connection.close();
-});
-
 describe("Registro de usuario", () => {
   beforeEach(async () => {
     // Limpia los usuarios antes de cada test

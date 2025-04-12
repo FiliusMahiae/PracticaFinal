@@ -8,14 +8,6 @@ const { tokenSign } = require("../utils/handleJwt");
 let user, token, otroUser;
 let clientePropio, clienteEmpresa, clienteOculto;
 
-beforeAll(async () => {
-  await mongoose.connection.once("connected", () => {});
-});
-
-afterAll(async () => {
-  await mongoose.connection.close();
-});
-
 beforeEach(async () => {
   await UserModel.deleteMany({});
   await ClientModel.deleteMany({});

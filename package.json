@@ -27,5 +27,13 @@
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.16.0",
     "supertest": "^7.1.0"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/jest.setup.js"
+    ]
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.1.4"
   }
 }
