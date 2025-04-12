@@ -102,19 +102,16 @@ const getClientById = async (req, res) => {
 const softDeleteClient = async (req, res) => {
   try {
     const clientId = req.params.id;
+
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const user = await User.findById(userId).select("company.cif");
-    const userCif = user?.company?.cif;
+    const userId = req.user._id;
 
     const client = await Client.findOne({
       _id: clientId,
-      $or: [
-        { createdBy: req.user._id },
-        userCif ? { cif: userCif } : null,
-      ].filter(Boolean),
+      createdBy: userId,
     });
 
     if (!client) {
@@ -140,15 +137,9 @@ const hardDeleteClient = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const user = await User.findById(userId).select("company.cif");
-    const userCif = user?.company?.cif;
-
     const client = await Client.findOne({
       _id: clientId,
-      $or: [
-        { createdBy: req.user._id },
-        userCif ? { cif: userCif } : null,
-      ].filter(Boolean),
+      createdBy: req.user._id,
     });
 
     if (!client) {
@@ -170,13 +161,9 @@ const hardDeleteClient = async (req, res) => {
 const getArchivedClients = async (req, res) => {
   try {
     const userId = req.user._id;
-    const user = await User.findById(userId).select("company.cif");
-    const userCif = user?.company?.cif;
 
     const clients = await Client.findDeleted({
-      $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
-        Boolean
-      ),
+      createdBy: userId,
     });
 
     res.json({ clients });
@@ -193,15 +180,9 @@ const recoverClient = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const user = await User.findById(userId).select("company.cif");
-    const userCif = user?.company?.cif;
-
     const client = await Client.findOneDeleted({
       _id: clientId,
-      $or: [
-        { createdBy: req.user._id },
-        userCif ? { cif: userCif } : null,
-      ].filter(Boolean),
+      createdBy: req.user._id,
     });
 
     if (!client) {
