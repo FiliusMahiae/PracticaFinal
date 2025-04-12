@@ -4,12 +4,12 @@ Content-Type: application/json
 
 {
   "email": "test@example.com",
-  "password": "Password123"
+  "password": "password123"
 }
 
 ### Guardar el token que recibido
 
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjZhODYzOTRjZmZjNDVmZjcxNTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDAxNzQxNiwiZXhwIjoxNzQ0MDI0NjE2fQ.hLxkxkQV300xFbAtUxw-JrwseTtVjABfC_rHHEIw9gQ
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhMmI4ZmM3YjkzMjcxM2VjNDg4NDgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ0ODQzOSwiZXhwIjoxNzQ0NDU1NjM5fQ.ksd-5Zqhx4-OX838Ez0kAfPoHwl9-GDhoAs-vRKKmh4
 
 ### Obtener todos los clientes
 GET http://localhost:8080/api/client
@@ -24,6 +24,7 @@ Content-Type: application/json
   "name": "Cliente 1",
   "email": "cliente@example.com",
   "phone": "600123456",
+  "cif": "51021707M",
   "address": {
     "street": "Calle Real",
     "number": 99,
@@ -34,11 +35,11 @@ Content-Type: application/json
 }
 
 ### Obtener cliente por ID
-GET http://localhost:8080/api/client/67f39e8cfa680d78b52bd830
+GET http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
 Authorization: Bearer {{token}}
 
 ### Actualizar cliente
-PUT http://localhost:8080/api/client/67f39e8cfa680d78b52bd830
+PUT http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -47,7 +48,7 @@ Content-Type: application/json
 }
 
 ### Archivar cliente (soft delete)
-DELETE http://localhost:8080/api/client/archive/67f3a08ba57aa840151e8c3c
+DELETE http://localhost:8080/api/client/archive/67fa2dfe7ca5a5ab936c0fd4
 Authorization: Bearer {{token}}
 
 ### Obtener clientes archivados
@@ -55,11 +56,11 @@ GET http://localhost:8080/api/client/archive
 Authorization: Bearer {{token}}
 
 ### Restaurar cliente archivado
-PATCH http://localhost:8080/api/client/restore/67f3a08ba57aa840151e8c3c
+PATCH http://localhost:8080/api/client/restore/67fa2dfe7ca5a5ab936c0fd4
 Authorization: Bearer {{token}}
 
 ### Eliminar cliente completamente (hard delete)
-DELETE http://localhost:8080/api/client/67f3a08ba57aa840151e8c3c
+DELETE http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
 Authorization: Bearer {{token}}
 
 

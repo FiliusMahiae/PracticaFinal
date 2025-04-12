@@ -5,6 +5,7 @@ exports.validateClient = [
   check("name", "El nombre es obligatorio").notEmpty(),
   check("email", "El email es obligatorio").notEmpty(),
   check("email", "Debe ser un email válido").isEmail(),
+  check("cif", "El cif es obligatorio").notEmpty(),
 
   body("address.street").optional().isString(),
   body("address.number").optional().isInt().toInt(),

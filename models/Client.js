@@ -19,7 +19,7 @@ const ClientSchema = new Schema(
       ref: "User",
       required: true,
     },
-    companyId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    cif: { type: String, required: true },
   },
   {
     timestamps: true, // Crea campos createdAt y updatedAt

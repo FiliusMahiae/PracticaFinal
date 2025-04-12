@@ -4,10 +4,13 @@ const { handleHttpError } = require("../utils/handleError");
 
 const createClient = async (req, res) => {
   try {
+    // Si el usuario tiene cif asignado, lo usamos para el nuevo cliente.
+    const userCif = req.user.company?.cif;
+
     const client = new Client({
       ...req.body,
       createdBy: req.user._id,
-      companyId: req.user.company?._id || null,
+      cif: userCif || req.body.cif, // Prioriza el cif del usuario, o bien permite enviarlo desde el body
     });
     await client.save();
     res.status(201).json({ message: "Cliente creado correctamente", client });
@@ -46,10 +49,12 @@ const updateClient = async (req, res) => {
 const getClients = async (req, res) => {
   try {
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
+    const userCif = req.user.company?.cif;
 
     const clients = await Client.find({
-      $or: [{ createdBy: userId }, { companyId: companyId }],
+      $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
+        Boolean
+      ),
     });
 
     res.json({ clients });
@@ -62,17 +67,18 @@ const getClients = async (req, res) => {
 const getClientById = async (req, res) => {
   try {
     const clientId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
       return handleHttpError(res, "ID inválido", 400);
     }
 
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
+    const userCif = req.user.company?.cif;
 
     const client = await Client.findOne({
       _id: clientId,
-      $or: [{ createdBy: userId }, { companyId: companyId }],
+      $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
+        Boolean
+      ),
     });
 
     if (!client) {
@@ -93,14 +99,18 @@ const getClientById = async (req, res) => {
 const softDeleteClient = async (req, res) => {
   try {
     const clientId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const userCif = req.user.company?.cif;
+
     const client = await Client.findOne({
       _id: clientId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        userCif ? { cif: userCif } : null,
+      ].filter(Boolean),
     });
 
     if (!client) {
@@ -122,14 +132,18 @@ const softDeleteClient = async (req, res) => {
 const hardDeleteClient = async (req, res) => {
   try {
     const clientId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const userCif = req.user.company?.cif;
+
     const client = await Client.findOne({
       _id: clientId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        userCif ? { cif: userCif } : null,
+      ].filter(Boolean),
     });
 
     if (!client) {
@@ -151,10 +165,12 @@ const hardDeleteClient = async (req, res) => {
 const getArchivedClients = async (req, res) => {
   try {
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
+    const userCif = req.user.company?.cif;
 
     const clients = await Client.findDeleted({
-      $or: [{ createdBy: userId }, { companyId: companyId }],
+      $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
+        Boolean
+      ),
     });
 
     res.json({ clients });
@@ -167,14 +183,18 @@ const getArchivedClients = async (req, res) => {
 const recoverClient = async (req, res) => {
   try {
     const clientId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(clientId)) {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const userCif = req.user.company?.cif;
+
     const client = await Client.findOneDeleted({
       _id: clientId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        userCif ? { cif: userCif } : null,
+      ].filter(Boolean),
     });
 
     if (!client) {
