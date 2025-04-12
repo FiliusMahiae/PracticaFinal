@@ -1,5 +1,6 @@
 const Client = require("../models/Client");
 const mongoose = require("mongoose");
+const User = require("../models/User");
 const { handleHttpError } = require("../utils/handleError");
 
 const createClient = async (req, res) => {
@@ -46,13 +47,16 @@ const updateClient = async (req, res) => {
 const getClients = async (req, res) => {
   try {
     const userId = req.user._id;
-    const userCif = req.user.company?.cif;
 
-    const clients = await Client.find({
-      $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
-        Boolean
-      ),
-    });
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
+
+    const filters = [{ createdBy: userId }];
+    if (userCif) {
+      filters.push({ cif: userCif });
+    }
+
+    const clients = await Client.find({ $or: filters });
 
     res.json({ clients });
   } catch (err) {
@@ -69,7 +73,9 @@ const getClientById = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const userCif = req.user.company?.cif;
+
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
 
     const client = await Client.findOne({
       _id: clientId,
@@ -100,7 +106,8 @@ const softDeleteClient = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const userCif = req.user.company?.cif;
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
 
     const client = await Client.findOne({
       _id: clientId,
@@ -133,7 +140,8 @@ const hardDeleteClient = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const userCif = req.user.company?.cif;
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
 
     const client = await Client.findOne({
       _id: clientId,
@@ -162,7 +170,8 @@ const hardDeleteClient = async (req, res) => {
 const getArchivedClients = async (req, res) => {
   try {
     const userId = req.user._id;
-    const userCif = req.user.company?.cif;
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
 
     const clients = await Client.findDeleted({
       $or: [{ createdBy: userId }, userCif ? { cif: userCif } : null].filter(
@@ -184,7 +193,8 @@ const recoverClient = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
-    const userCif = req.user.company?.cif;
+    const user = await User.findById(userId).select("company.cif");
+    const userCif = user?.company?.cif;
 
     const client = await Client.findOneDeleted({
       _id: clientId,
