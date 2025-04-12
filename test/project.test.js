@@ -1,7 +1,7 @@
 /* project.test.js */
 const request = require("supertest");
 const mongoose = require("mongoose");
-const { app } = require("../app"); // Ajusta la ruta según tu setup
+const { app } = require("../app");
 const ProjectModel = require("../models/Project");
 const UserModel = require("../models/User");
 const ClientModel = require("../models/Client");
