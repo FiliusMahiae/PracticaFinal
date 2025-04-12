@@ -124,7 +124,6 @@ describe("POST /api/project - Crear proyecto", () => {
   });
 
   it("Error 422 si faltan campos requeridos (ej. name)", async () => {
-    // Suponiendo que validateProject devuelva 422 si 'name' es requerido y falta
     const res = await request(app)
       .post("/api/project")
       .set("Authorization", `Bearer ${token}`)
