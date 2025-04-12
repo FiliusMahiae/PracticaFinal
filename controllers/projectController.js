@@ -1,4 +1,5 @@
 const Project = require("../models/Project");
+const User = require("../models/User");
 const { handleHttpError } = require("../utils/handleError");
 const mongoose = require("mongoose");
 
@@ -6,12 +7,15 @@ const createProject = async (req, res) => {
   try {
     const { name, projectCode } = req.body;
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
 
-    // Comprobar si ya existe uno igual
+    const user = await User.findById(userId).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const existing = await Project.findOne({
-      $or: [{ createdBy: userId }, { companyId: companyId }],
-      $or: [{ name }, { projectCode }],
+      $or: [
+        { createdBy: userId, $or: [{ name }, { projectCode }] },
+        companyCif ? { companyCif, $or: [{ name }, { projectCode }] } : null,
+      ].filter(Boolean),
     });
 
     if (existing) {
@@ -25,11 +29,10 @@ const createProject = async (req, res) => {
     const newProject = new Project({
       ...req.body,
       createdBy: userId,
-      companyId: companyId || null,
+      companyCif,
     });
 
     await newProject.save();
-
     res
       .status(201)
       .json({ message: "Proyecto creado correctamente", project: newProject });
@@ -47,9 +50,15 @@ const updateProject = async (req, res) => {
       return handleHttpError(res, "ID de proyecto inválido", 400);
     }
 
+    const user = await User.findById(req.user._id).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const project = await Project.findOne({
       _id: projectId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        companyCif ? { companyCif } : null,
+      ].filter(Boolean),
     });
 
     if (!project) {
@@ -60,7 +69,7 @@ const updateProject = async (req, res) => {
       );
     }
 
-    Object.assign(project, req.body);
+    Object.assign(project, { ...req.body, companyCif });
     await project.save();
 
     res.json({ message: "Proyecto actualizado correctamente", project });
@@ -73,10 +82,13 @@ const updateProject = async (req, res) => {
 const getProjects = async (req, res) => {
   try {
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
+    const user = await User.findById(userId).select("company.cif");
+    const companyCif = user?.company?.cif || null;
 
     const projects = await Project.find({
-      $or: [{ createdBy: userId }, { companyId: companyId }],
+      $or: [{ createdBy: userId }, companyCif ? { companyCif } : null].filter(
+        Boolean
+      ),
     }).populate("clientId");
 
     res.json({ projects });
@@ -94,9 +106,15 @@ const getProjectById = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const user = await User.findById(req.user._id).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const project = await Project.findOne({
       _id: projectId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        companyCif ? { companyCif } : null,
+      ].filter(Boolean),
     }).populate("clientId");
 
     if (!project) {
@@ -122,9 +140,15 @@ const softDeleteProject = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const user = await User.findById(req.user._id).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const project = await Project.findOne({
       _id: projectId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        companyCif ? { companyCif } : null,
+      ].filter(Boolean),
     });
 
     if (!project) {
@@ -151,9 +175,15 @@ const hardDeleteProject = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const user = await User.findById(req.user._id).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const project = await Project.findOne({
       _id: projectId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        companyCif ? { companyCif } : null,
+      ].filter(Boolean),
     });
 
     if (!project) {
@@ -175,10 +205,13 @@ const hardDeleteProject = async (req, res) => {
 const getArchivedProjects = async (req, res) => {
   try {
     const userId = req.user._id;
-    const companyId = req.user.company?._id;
+    const user = await User.findById(userId).select("company.cif");
+    const companyCif = user?.company?.cif || null;
 
     const projects = await Project.findDeleted({
-      $or: [{ createdBy: userId }, { companyId: companyId }],
+      $or: [{ createdBy: userId }, companyCif ? { companyCif } : null].filter(
+        Boolean
+      ),
     }).populate("clientId");
 
     res.json({ projects });
@@ -200,9 +233,15 @@ const restoreProject = async (req, res) => {
       return handleHttpError(res, "ID inválido", 400);
     }
 
+    const user = await User.findById(req.user._id).select("company.cif");
+    const companyCif = user?.company?.cif || null;
+
     const project = await Project.findOneDeleted({
       _id: projectId,
-      $or: [{ createdBy: req.user._id }, { companyId: req.user.company?._id }],
+      $or: [
+        { createdBy: req.user._id },
+        companyCif ? { companyCif } : null,
+      ].filter(Boolean),
     });
 
     if (!project) {

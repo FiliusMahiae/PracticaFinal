@@ -25,7 +25,7 @@ const ProjectSchema = new Schema(
       ref: "User",
       required: true,
     },
-    companyId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    companyCif: { type: String, default: null },
   },
   {
     timestamps: true,
