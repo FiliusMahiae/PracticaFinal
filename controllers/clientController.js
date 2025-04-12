@@ -4,13 +4,10 @@ const { handleHttpError } = require("../utils/handleError");
 
 const createClient = async (req, res) => {
   try {
-    // Si el usuario tiene cif asignado, lo usamos para el nuevo cliente.
-    const userCif = req.user.company?.cif;
-
     const client = new Client({
       ...req.body,
       createdBy: req.user._id,
-      cif: userCif || req.body.cif, // Prioriza el cif del usuario, o bien permite enviarlo desde el body
+      cif: req.body.cif,
     });
     await client.save();
     res.status(201).json({ message: "Cliente creado correctamente", client });
