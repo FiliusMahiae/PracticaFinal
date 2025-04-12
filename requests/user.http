@@ -99,7 +99,7 @@ Content-Type: application/json
 
 ### Actualizar datos de la compañía (usuario normal)
 PATCH http://localhost:8080/api/users/onboarding/company
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhNDU0OTZlMWIzNGE2YTVmMmZiOTMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ1NTAwMywiZXhwIjoxNzQ0NDYyMjAzfQ.1PVeYLkIPXNSUVCG7QqHo-zF9i8d9a1mr7VTHHmH0Tk
 Content-Type: application/json
 
 {
