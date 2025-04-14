@@ -5,6 +5,7 @@ const { tokenSign } = require("../utils/handleJwt");
 const { handleHttpError } = require("../utils/handleError");
 const uploadToPinata = require("../utils/handleUploadIPFS");
 const { tokenSignRecovery } = require("../utils/handleJwt");
+const { sendEmail } = require("../utils/hanldeMail");
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -26,6 +27,15 @@ const register = async (req, res) => {
       attempts: process.env.MAX_ATTEMPTS || 3,
     });
     await user.save();
+
+    await sendEmail({
+      from: `"Tu App" <${process.env.EMAIL}>`,
+      to: email,
+      subject: "Código de verificación",
+      text: `Tu código de verificación es: ${verificationCode}`,
+      html: `<p>Tu código de verificación es: <b>${verificationCode}</b></p>`,
+    });
+
     const token = await tokenSign(user);
     return res.json({
       token,

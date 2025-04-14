@@ -3,7 +3,7 @@ POST http://localhost:8080/api/users/register
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "sergio.mahiarello@gmail.com",
   "password": "password123"
 }
 
@@ -36,11 +36,11 @@ Content-Type: application/json
 
 ### Validar email - Código correcto
 PUT http://localhost:8080/api/users/validation
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhMmI4ZmM3YjkzMjcxM2VjNDg4NDgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ0ODM5OSwiZXhwIjoxNzQ0NDU1NTk5fQ.w3zrfNG-bmWpzF_wCQWgc9S1lNTILr0wFZ7CZz6EEiE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZjYzJiM2QzMzUxNjgyN2EzMDNiMjQiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDYxODE2NCwiZXhwIjoxNzQ0NjI1MzY0fQ.1vzVCAfUe1B1wi7NTLHxrpaguX_aoBqipxuUtT8Kp40
 Content-Type: application/json
 
 {
-  "code": "787829"
+  "code": "597356"
 }
 
 ### Validar email - Código incorrecto
