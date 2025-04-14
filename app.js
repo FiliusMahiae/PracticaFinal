@@ -6,6 +6,9 @@ const dbConnect = require("./config/db");
 const loggerStream = require("./utils/handleLogger");
 const morganBody = require("morgan-body");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpecs = require("./docs/swagger");
+
 const app = express();
 
 // Middleware de logs para errores
@@ -22,6 +25,8 @@ app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Montar las rutas dinámicas bajo el prefijo /api
 app.use("/api", require("./routes"));
