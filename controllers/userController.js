@@ -29,7 +29,7 @@ const register = async (req, res) => {
     await user.save();
 
     await sendEmail({
-      from: `"Tu App" <${process.env.EMAIL}>`,
+      from: `"PracticaFinal" <${process.env.EMAIL}>`,
       to: email,
       subject: "Código de verificación",
       text: `Tu código de verificación es: ${verificationCode}`,
