@@ -1,4 +1,4 @@
-# Proyecto Backend — Gestión de Usuarios
+# Proyecto Backend — Práctica Final
 
 ## Universidad: U-TAD
 ## Alumno: Sergio Mahía
@@ -8,23 +8,29 @@
 
 ## Descripción del proyecto
 
-Este proyecto consiste en el desarrollo de una API RESTful usando Node.js y Express, que permite la gestión completa de usuarios. Incluye funcionalidades de registro, validación de email, login, onboarding de datos personales y de empresa, gestión de logo, recuperación de contraseña, invitación de compañeros y eliminación de cuenta.
+Este proyecto consiste en el desarrollo de una API RESTful usando Node.js y Express, que permite la gestión completa de usuarios, clientes, proyectos y albaranes.
 
-Cumple con todos los requisitos técnicos solicitados en la práctica intermedia de la asignatura.
+Cumple con todos los requisitos técnicos solicitados en la práctica final de la asignatura.
 
 ---
 
 ## Tecnologías utilizadas
 
-- Node.js
-- Express.js
-- MongoDB + Mongoose
-- JWT (autenticación)
-- Bcrypt (cifrado de contraseñas)
-- Multer (subida de archivos)
-- Pinata + IPFS (almacenamiento de logos)
-- express-validator (validación)
-- dotenv (configuración de entorno)
+- **Node.js** – runtime JavaScript en servidor  
+- **Express.js** – framework HTTP  
+- **MongoDB + Mongoose** – base de datos 
+- **JWT (jsonwebtoken)** – autenticación basada en tokens  
+- **Bcrypt** – hashing de contraseñas  
+- **express‑validator** – validación de peticiones  
+- **Multer** – recepción de archivos (logo, firma)  
+- **Pinata + IPFS** – almacenamiento descentralizado de imágenes y PDF  
+- **PDFKit** – generación de documentos PDF en memoria  
+- **Nodemailer + Gmail OAuth2** – envío de correos (códigos, invitaciones)  
+- **@slack/webhook** – notificaciones de logs a Slack  
+- **Swagger (swagger‑ui‑express + swagger‑jsdoc)** – documentación interactiva de la API  
+- **morgan‑body** – logging detallado de peticiones/respuestas  
+- **CORS** – gestión de orígenes cruzados  
+- **dotenv** – configuración de variables de entorno  
 
 ---
 
@@ -33,8 +39,8 @@ Cumple con todos los requisitos técnicos solicitados en la práctica intermedia
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/FiliusMahiae/PracticaParcial.git
-cd PracticaParcial
+git clone https://github.com/FiliusMahiae/PracticaFinal.git
+cd PracticaFinal
 ```
 
 2. Instalar las dependencias:
@@ -48,13 +54,76 @@ npm install
 Crea un archivo `.env` en la raíz del proyecto basado en `.env-example`:
 
 ```env
-PORT=8080
-MONGODB_URI=mongodb://localhost:27017/backend-api
-JWT_SECRET=clave_secreta
-PINATA_KEY=tu_api_key_de_pinata
-PINATA_SECRET=tu_api_secret_de_pinata
-PINATA_GATEWAY_URL=tu_gateway_de_pinata
-MAX_ATTEMPTS=3
+# Puerto en el que se levanta el servidor Express.
+
+# Por ejemplo, si PORT=3000, se accede a la app en http://localhost:3000
+
+PORT=
+
+# URL de conexión a la base de datos MongoDB.
+
+# Incluye las credenciales de acceso y el nombre de la base de datos.
+
+# Ejemplo: mongodb+srv://usuario:contraseña@cluster.mongodb.net/nombreDB
+
+MONGODB_URI=
+
+# Clave secreta utilizada para firmar y verificar tokens JWT en Express.
+
+# Se usa para generar el token al hacer login y validar peticiones autenticadas.
+
+JWT_SECRET=
+
+# URL del gateway de Pinata para acceder a los archivos subidos a IPFS.
+
+# Es algo como: https://gateway.pinata.cloud/ipfs/
+
+# Se utiliza para generar el enlace público del archivo tras subirlo.
+
+PINATA_GATEWAY_URL=
+
+# Clave pública de la API de Pinata.
+
+# Necesaria para autenticar las peticiones a la API de Pinata (subida de archivos a IPFS).
+
+PINATA_KEY=
+
+# Clave secreta de la API de Pinata.
+
+# Se combina con PINATA_KEY para firmar las peticiones.
+
+PINATA_SECRET=
+
+# Webhook de Slack para enviar notificaciones desde Express a un canal.
+
+# Se usa para logear los errores internos del servidor (5XX).
+
+SLACK_WEBHOOK=
+
+# Dirección de Gmail desde la que se enviarán los correos de verificación
+
+EMAIL=
+
+# Token de actualización OAuth2 generado en OAuth Playground
+
+# Se usa para obtener automáticamente nuevos access tokens sin intervención del usuario
+
+REFRESH_TOKEN=
+
+# Secreto del cliente OAuth2 (lo proporciona Google al crear credenciales en el proyecto)
+
+CLIENT_SECRET=
+
+# ID del cliente OAuth2 (identifica la aplicación en el ecosistema de Google)
+
+CLIENT_ID=
+
+# URI de redirección que se usa únicamente para obtener el refresh_token manualmente
+
+# En tiempo de ejecución no se usa, pero es obligatorio para configurar correctamente el cliente OAuth2
+
+REDIRECT_URI=
+
 ```
 
 4. Iniciar el servidor en modo desarrollo:
@@ -65,46 +134,6 @@ npm start
 
 ---
 
-## Endpoints principales
-
-| Método | Ruta                                | Descripción                             |
-|--------|-------------------------------------|-----------------------------------------|
-| POST   | `/api/users/register`               | Registro de usuario                     |
-| PUT    | `/api/users/validation`             | Validación del email                    |
-| POST   | `/api/users/login`                  | Inicio de sesión                        |
-| PUT    | `/api/users/onboarding/personal`    | Actualizar datos personales             |
-| PATCH  | `/api/users/onboarding/company`     | Actualizar datos de la empresa          |
-| PATCH  | `/api/users/logo`                   | Subir logo de la empresa                |
-| GET    | `/api/users/me`                     | Obtener perfil del usuario              |
-| DELETE | `/api/users/?soft=true / false`       | Eliminar cuenta (soft o hard)           |
-| POST   | `/api/users/recover/request`        | Solicitar recuperación de contraseña    |
-| PUT    | `/api/users/recover/reset`          | Resetear contraseña con token de recuperación |
-| POST   | `/api/users/invite`                 | Invitar a un compañero (rol `guest`)    |
-
----
-
 ## Archivo de pruebas HTTP
 
-Se incluye un archivo `requests.http` con todas las pruebas de los endpoints, compatible con REST Client para Visual Studio Code o importable en Postman.
-
----
-
-## Cumplimiento del enunciado
-
-- Registro con validación y código.
-- Validación de email con intentos.
-- Login con JWT.
-- Onboarding completo.
-- Validación condicional para autónomos.
-- Subida de logo a IPFS.
-- Eliminación soft/hard.
-- Recuperación de contraseña.
-- Invitación de usuarios invitados.
-
----
-
-## Notas
-
-- Todos los errores están gestionados correctamente con códigos HTTP 4XX/5XX.
-- Las contraseñas se almacenan cifradas con bcrypt.
-- La aplicación sigue una estructura modular clara y escalable.
+Se incluyen varios archivos `*.http` con todas las pruebas de los endpoints, compatible con REST Client para Visual Studio Code o importable en Postman.
