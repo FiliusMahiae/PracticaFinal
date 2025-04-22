@@ -1,13 +1,34 @@
+/****************************************************************************************
+ *  DELIVERY NOTE CONTROLLER
+ *  --------------------------------------------------------------------------------------
+ *  Funcionalidades cubiertas:
+ *    -> createDeliveryNote     Alta de parte/albarán vinculado a un proyecto
+ *    -> getDeliveryNotes       Listado propios del usuario
+ *    -> getDeliveryNoteById    Detalle con población profunda (project + client)
+ *    -> getDeliveryNotePdf     Genera PDF (IPFS) y lo envía como descarga
+ *    -> signDeliveryNote       Adjunta firma, regenera PDF y actualiza la URL
+ *    -> deleteDeliveryNote     Elimina (solo si no está firmado)
+ *
+ *  Puntos de integración externos:
+ *    - generatePdfBuffer()   -> PDFKit: crea un buffer PDF a partir del modelo
+ *    - uploadToPinata()      -> Carga binarios a Pinata y devuelve IpfsHash
+ *    - mongoose-delete NO usado aquí (borrado real en deleteDeliveryNote)
+ *    - Readable.from(buffer) -> convierte Buffer a stream para piping HTTP
+ ****************************************************************************************/
+
 const DeliveryNote = require("../models/DeliveryNote");
-const User = require("../models/User");
-const Project = require("../models/Project");
 const { Readable } = require("stream");
 const generatePdfBuffer = require("../utils/handlePdf");
 const uploadToPinata = require("../utils/handleUploadIPFS");
-
 const { handleHttpError } = require("../utils/handleError");
 const mongoose = require("mongoose");
 
+/* ======================================================================================
+ *  CREATE DELIVERY NOTE
+ *  --------------------------------------------------------------------------------------
+ *  - Recoge los campos del body y los encapsula en payload
+ *  - Guarda documento y devuelve 201
+ * ==================================================================================== */
 const createDeliveryNote = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -33,6 +54,9 @@ const createDeliveryNote = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  LIST DELIVERY NOTES (sólo los del usuario autenticado)
+ * ==================================================================================== */
 const getDeliveryNotes = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -48,6 +72,14 @@ const getDeliveryNotes = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  GET DELIVERY NOTE BY ID
+ *  --------------------------------------------------------------------------------------
+ *  - Población anidada:
+ *      createdBy  -> (email, name)
+ *      projectId  -> (objeto Project)
+ *        └─ clientId -> (objeto Client)
+ * ==================================================================================== */
 const getDeliveryNoteById = async (req, res) => {
   try {
     const deliveryNoteId = req.params.id;
@@ -58,13 +90,13 @@ const getDeliveryNoteById = async (req, res) => {
 
     const deliveryNote = await DeliveryNote.findOne({
       _id: deliveryNoteId,
-      createdBy: req.user._id, // Solo si el usuario es el autor
+      createdBy: req.user._id,
     })
-      .populate("createdBy", "email name") //Cambia createdBy por el email y nombre del autor
+      .populate("createdBy", "email name")
       .populate({
-        path: "projectId", //Cambia projectId por el proyecto
+        path: "projectId",
         populate: {
-          path: "clientId", //Dentro del proyecto, cambia clientId por el cliente
+          path: "clientId",
           model: "Client",
         },
       });
@@ -80,6 +112,17 @@ const getDeliveryNoteById = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  GET DELIVERY NOTE PDF
+ *  --------------------------------------------------------------------------------------
+ *  Flujo:
+ *    1) Verifica acceso (propietario o invitado con role guest)
+ *    2) generatePdfBuffer(note) -> Buffer
+ *    3) Sube buffer a Pinata, guarda pdfUrl con IpfsHash
+ *    4) Devuelve el PDF como attachment (stream)
+ *  Detalle de permisos invitado:
+ *    - token JWT debe incluir role='guest' y invitedBy = creador del albarán
+ * ==================================================================================== */
 const getDeliveryNotePdf = async (req, res) => {
   try {
     const noteId = req.params.id;
@@ -94,20 +137,22 @@ const getDeliveryNotePdf = async (req, res) => {
 
     if (!note) return handleHttpError(res, "Albarán no encontrado", 404);
 
+    // Permisos -> owner o invitado guest (invitedBy)
     const isOwner = note.createdBy._id.equals(userId);
     const isGuest =
       req.user.role === "guest" &&
       note.createdBy._id.equals(req.user.invitedBy);
     if (!isOwner && !isGuest) return handleHttpError(res, "No autorizado", 403);
 
-    // Generar PDF
+    // 1) Generar PDF
     const buffer = await generatePdfBuffer(note);
 
-    // Subir a IPFS
+    // 2) Subir a IPFS
     const result = await uploadToPinata(buffer, `albaran-${noteId}.pdf`);
     note.pdfUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
     await note.save();
 
+    // 3) Enviar como descarga
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=albaran-${noteId}.pdf`
@@ -120,6 +165,14 @@ const getDeliveryNotePdf = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  SIGN DELIVERY NOTE
+ *  --------------------------------------------------------------------------------------
+ *  - Solo el autor puede firmar
+ *  - Sube la imagen PNG de la firma a Pinata y guarda note.signature
+ *  - Regenera un nuevo PDF con la firma visible
+ *  - Sobrescribe pdfUrl con el PDF firmado
+ * ==================================================================================== */
 const signDeliveryNote = async (req, res) => {
   try {
     const noteId = req.params.id;
@@ -138,7 +191,7 @@ const signDeliveryNote = async (req, res) => {
       return handleHttpError(res, "Albarán no encontrado o no autorizado", 404);
     if (!req.file) return handleHttpError(res, "No se ha subido la firma", 400);
 
-    // Subir firma
+    // 1) Subir imagen de firma a IPFS
     const imageUpload = await uploadToPinata(
       req.file.buffer,
       `firma-${noteId}.png`
@@ -146,10 +199,10 @@ const signDeliveryNote = async (req, res) => {
     const signatureUrl = `https://gateway.pinata.cloud/ipfs/${imageUpload.IpfsHash}`;
     note.signature = signatureUrl;
 
-    // Generar nuevo PDF con firma
+    // 2) Regenerar PDF con firma
     const buffer = await generatePdfBuffer(note);
 
-    // Subir a IPFS y actualizar pdfUrl si antes era un PDF sin firma
+    // 3) Subir nuevo PDF firmado
     const newUpload = await uploadToPinata(
       buffer,
       `albaran-${noteId}-firmado.pdf`
@@ -157,6 +210,7 @@ const signDeliveryNote = async (req, res) => {
     note.pdfUrl = `https://gateway.pinata.cloud/ipfs/${newUpload.IpfsHash}`;
     await note.save();
 
+    // 4) Respuesta con descarga directa
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=albaran-${noteId}-firmado.pdf`
@@ -169,6 +223,11 @@ const signDeliveryNote = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  DELETE DELIVERY NOTE
+ *  --------------------------------------------------------------------------------------
+ *  - Permite eliminación permanente solo si la nota NO está firmada
+ * ==================================================================================== */
 const deleteDeliveryNote = async (req, res) => {
   try {
     const noteId = req.params.id;
@@ -203,6 +262,9 @@ const deleteDeliveryNote = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  EXPORTS
+ * ==================================================================================== */
 module.exports = {
   createDeliveryNote,
   getDeliveryNotes,

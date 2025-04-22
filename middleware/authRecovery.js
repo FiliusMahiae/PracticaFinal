@@ -1,5 +1,11 @@
+// middlewares/authRecovery.js
 const { verifyToken } = require("../utils/handleJwt");
 
+/**
+ * Middleware para enlaces de recuperación de contraseña
+ * -> Requiere un token JWT con la marca recover=true
+ * -> Responde 403 si el token no es de recuperación
+ */
 const authRecovery = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];

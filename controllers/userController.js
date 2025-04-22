@@ -1,4 +1,23 @@
-// controllers/userController.js
+/****************************************************************************************
+ *  USER CONTROLLER
+ *  --------------------------------------------------------------------------------------
+ *  Gestiona todo el ciclo de vida del usuario:
+ *    -> Registro y validación de email
+ *    -> Login y emisión de JWT
+ *    -> Perfil (lectura / actualización de datos personales, empresa y logo)
+ *    -> Gestión de invitados y roles
+ *    -> Recuperación y reseteo de contraseña
+ *    -> Eliminación (soft / hard)
+ *
+ *  Las utilidades externas se encargan de:
+ *    encrypt / compare      -> hashing de contraseñas (bcrypt)
+ *    tokenSign              -> generación de JWT “normal”
+ *    tokenSignRecovery      -> JWT con marca recover=true
+ *    handleHttpError        -> respuesta homogénea de errores
+ *    uploadToPinata         -> carga de archivos a IPFS vía Pinata
+ *    sendEmail              -> envío de correos SMTP (OAuth2 Gmail)
+ ****************************************************************************************/
+
 const User = require("../models/User");
 const { encrypt, compare } = require("../utils/handlePassword");
 const { tokenSign } = require("../utils/handleJwt");
@@ -7,10 +26,20 @@ const uploadToPinata = require("../utils/handleUploadIPFS");
 const { tokenSignRecovery } = require("../utils/handleJwt");
 const { sendEmail } = require("../utils/hanldeMail");
 
+/* 6‑dígitos aleatorios -> código de verificación / recuperación */
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+/* ======================================================================================
+ *  REGISTRO
+ *  --------------------------------------------------------------------------------------
+ *  1) Verifica duplicados
+ *  2) Hashea la contraseña
+ *  3) Genera verificationCode y lo envía por email
+ *  4) Guarda usuario -> user.status = 0 (pendiente)
+ *  5) Devuelve JWT para sesión provisional (aun sin validar email)
+ * ==================================================================================== */
 const register = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -18,8 +47,10 @@ const register = async (req, res) => {
     if (existingUser) {
       return handleHttpError(res, "El usuario ya existe.", 409);
     }
+
     const hashedPassword = await encrypt(password);
     const verificationCode = generateVerificationCode();
+
     const user = new User({
       email,
       password: hashedPassword,
@@ -28,6 +59,7 @@ const register = async (req, res) => {
     });
     await user.save();
 
+    // Envío de código de verificación
     await sendEmail({
       from: `"PracticaFinal" <${process.env.EMAIL}>`,
       to: email,
@@ -36,7 +68,7 @@ const register = async (req, res) => {
       html: `<p>Tu código de verificación es: <b>${verificationCode}</b></p>`,
     });
 
-    const token = await tokenSign(user);
+    const token = await tokenSign(user); // SESIÓN ABIERTA
     return res.json({
       token,
       user: {
@@ -52,6 +84,13 @@ const register = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  VALIDAR EMAIL
+ *  --------------------------------------------------------------------------------------
+ *  • Compara el código enviado con el almacenado
+ *  • Maneja intentos restantes -> user.attempts
+ *  • Cambia status = 1 al validar
+ * ==================================================================================== */
 const validateEmail = async (req, res) => {
   const { code } = req.body;
   const userId = req.user._id;
@@ -60,13 +99,14 @@ const validateEmail = async (req, res) => {
     if (!user) {
       return handleHttpError(res, "Usuario no encontrado", 404);
     }
+
     if (user.verificationCode === code) {
-      user.status = 1; // Usuario validado
-      user.verificationCode = null; // Opcional: limpiar el código
+      user.status = 1; // validado
+      user.verificationCode = null; // opcionalmente se limpia
       await user.save();
       return res.json({ message: "Email validado correctamente" });
     } else {
-      // Código incorrecto: decrementa los intentos
+      // Código incorrecto -> decrementa intentos y bloquea al agotarse
       if (user.attempts > 0) {
         user.attempts = user.attempts - 1;
       }
@@ -86,6 +126,13 @@ const validateEmail = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  LOGIN
+ *  --------------------------------------------------------------------------------------
+ *  • Comprueba existencia de email
+ *  • Hace bcrypt.compare del password
+ *  • Devuelve JWT + datos básicos
+ * ==================================================================================== */
 const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -113,6 +160,11 @@ const login = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  ACTUALIZAR DATOS PERSONALES
+ *  --------------------------------------------------------------------------------------
+ *  -> Permite modificar nombre, apellidos, nif y dirección
+ * ==================================================================================== */
 const updatePersonalData = async (req, res) => {
   const { nombre, apellidos, nif, address } = req.body;
   const userId = req.user._id;
@@ -155,9 +207,14 @@ const updatePersonalData = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  ACTUALIZAR DATOS DE COMPAÑÍA
+ *  --------------------------------------------------------------------------------------
+ *  • Para role === “autonomo” clona los datos personales -> company
+ *  • Para otros roles usa los campos proporcionados en el body
+ * ==================================================================================== */
 const updateCompanyData = async (req, res) => {
   const { companyName, cif, street, number, postal, city, province } = req.body;
-
   const userId = req.user._id;
 
   try {
@@ -167,6 +224,7 @@ const updateCompanyData = async (req, res) => {
     }
 
     if (user.role === "autonomo") {
+      // Autónomo -> la “empresa” es él mismo
       user.company = {
         name: `${user.name || ""} ${user.surnames || ""}`.trim(),
         cif: user.nif,
@@ -200,17 +258,28 @@ const updateCompanyData = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  ACTUALIZAR LOGO
+ *  --------------------------------------------------------------------------------------
+ *  • Recibe un archivo (multer -> req.file.buffer)
+ *  • Sube la imagen a IPFS vía Pinata y guarda la URL en user.logo
+ *  • Devuelve la URL final
+ * ==================================================================================== */
 const updateLogo = async (req, res) => {
   try {
-    const userId = req.user._id; // Obtenemos el usuario del token
+    const userId = req.user._id;
     if (!req.file) {
       return handleHttpError(res, "No se ha proporcionado ninguna imagen", 400);
     }
+
+    // 1) Subida a IPFS
     const fileBuffer = req.file.buffer;
     const fileName = req.file.originalname;
     const pinataResponse = await uploadToPinata(fileBuffer, fileName);
     const ipfsFile = pinataResponse.IpfsHash;
     const ipfs = `https://${process.env.PINATA_GATEWAY_URL}/ipfs/${ipfsFile}`;
+
+    // 2) Actualiza documento usuario y devuelve el nuevo logo
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { logo: ipfs },
@@ -226,7 +295,9 @@ const updateLogo = async (req, res) => {
   }
 };
 
-// GET: Obtener datos del usuario a partir del token JWT
+/* ======================================================================================
+ *  GET PROFILE -> Devuelve al usuario completo a partir del JWT
+ * ==================================================================================== */
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -238,7 +309,12 @@ const getProfile = async (req, res) => {
   }
 };
 
-// DELETE: Eliminar usuario (soft por defecto, hard si query soft=false)
+/* ======================================================================================
+ *  DELETE USER -> Soft o Hard
+ *  --------------------------------------------------------------------------------------
+ *  • soft=true  (por defecto) -> .delete() (mongoose‑delete) guarda registro
+ *  • soft=false               -> remove definitivo con deleteOne()
+ * ==================================================================================== */
 const deleteUser = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -265,25 +341,32 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// POST: Invitar a otros compañeros (crea usuario con role "guest")
+/* ======================================================================================
+ *  INVITAR USUARIO
+ *  --------------------------------------------------------------------------------------
+ *  • Crea un usuario con role “guest” que hereda company del invitador
+ *  • Genera contraseña temporal para enviar por email (devuelta aquí en claro)
+ * ==================================================================================== */
 const inviteUser = async (req, res) => {
   const { email } = req.body;
   if (!email) return handleHttpError(res, "El email es obligatorio", 400);
   try {
     const inviter = await User.findById(req.user._id);
     if (!inviter) return handleHttpError(res, "Invitador no encontrado", 404);
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return handleHttpError(res, "El usuario ya existe", 409);
     }
-    // Generamos una contraseña temporal
-    const tempPassword = Math.random().toString(36).slice(-8);
+
+    const tempPassword = Math.random().toString(36).slice(-8); // 8 caracteres
     const hashedPassword = await encrypt(tempPassword);
+
     const newUser = new User({
       email,
       password: hashedPassword,
       role: "guest",
-      company: { ...inviter.company }, // Copia toda la info de empresa
+      company: { ...inviter.company }, // copia superficial de la empresa
     });
 
     await newUser.save();
@@ -297,18 +380,23 @@ const inviteUser = async (req, res) => {
   }
 };
 
-// Solicitar recuperación de contraseña: se genera un código y se crea un token de recuperación
+/* ======================================================================================
+ *  SOLICITAR RECUPERACIÓN DE CONTRASEÑA
+ *  --------------------------------------------------------------------------------------
+ *  1) Genera un código de 6 dígitos y lo guarda en passwordRecoveryCode
+ *  2) Crea un JWT especial con flag recover y lo devuelve (o se enviaría por email)
+ * ==================================================================================== */
 const requestPasswordRecovery = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
     if (!user) return handleHttpError(res, "Usuario no encontrado", 404);
+
     const recoveryCode = generateVerificationCode();
     user.passwordRecoveryCode = recoveryCode;
     await user.save();
-    // Generar token de recuperación usando la función especializada
+
     const recoveryToken = await tokenSignRecovery(user);
-    // En producción se enviaría el código por email; para pruebas lo retornamos en la respuesta
     return res.json({
       message: "Código de recuperación enviado",
       recoveryToken,
@@ -319,18 +407,26 @@ const requestPasswordRecovery = async (req, res) => {
   }
 };
 
-// Resetear contraseña usando el token de recuperación y el código enviado
+/* ======================================================================================
+ *  RESETEAR CONTRASEÑA
+ *  --------------------------------------------------------------------------------------
+ *  • Protegido por middleware authRecovery (token con recover=true)
+ *  • Valida el code vs passwordRecoveryCode
+ *  • Hashea la nueva contraseña y limpia el código
+ * ==================================================================================== */
 const resetPassword = async (req, res) => {
   const { code, newPassword } = req.body;
   try {
-    const user = await User.findById(req.user._id); // req.user se establece en authRecovery
+    const user = await User.findById(req.user._id);
     if (!user) return handleHttpError(res, "Usuario no encontrado", 404);
+
     if (user.passwordRecoveryCode !== code) {
       return handleHttpError(res, "Código incorrecto", 400);
     }
+
     const hashedPassword = await encrypt(newPassword);
     user.password = hashedPassword;
-    user.passwordRecoveryCode = ""; // Limpiar el código de recuperación
+    user.passwordRecoveryCode = ""; // limpia código
     await user.save();
     return res.json({ message: "Contraseña actualizada correctamente" });
   } catch (error) {
@@ -339,6 +435,9 @@ const resetPassword = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  EXPORTS
+ * ==================================================================================== */
 module.exports = {
   register,
   validateEmail,

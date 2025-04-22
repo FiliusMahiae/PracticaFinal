@@ -1,3 +1,7 @@
+/*********************************************************************
+ *  MODELO: DeliveryNote
+ *  -> Parte de trabajo / albarán asociado a un proyecto
+ *********************************************************************/
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -14,8 +18,9 @@ const DeliveryNoteSchema = new Schema(
       required: true,
     },
 
-    description: { type: String, default: "" },
+    description: { type: String, default: "" }, // Descripción general
 
+    // Registro de horas por persona
     workEntries: [
       {
         person: { type: String, required: true },
@@ -23,6 +28,7 @@ const DeliveryNoteSchema = new Schema(
       },
     ],
 
+    // Materiales empleados
     materialEntries: [
       {
         name: { type: String, required: true },
@@ -30,9 +36,9 @@ const DeliveryNoteSchema = new Schema(
       },
     ],
 
-    date: { type: Date, default: Date.now },
-    signature: { type: String, default: "" },
-    pdfUrl: { type: String, default: "" },
+    date: { type: Date, default: Date.now }, // Fecha del parte
+    signature: { type: String, default: "" }, // URL firma
+    pdfUrl: { type: String, default: "" }, // Almacén del PDF generado
   },
   {
     timestamps: true,

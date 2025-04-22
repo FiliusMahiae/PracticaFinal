@@ -1,4 +1,3 @@
-const { response } = require("express"); // Aunque no es necesario, se puede quitar si no se usa
 const pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
 
 const uploadToPinata = async (fileBuffer, fileName) => {

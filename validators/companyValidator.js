@@ -15,7 +15,6 @@ exports.validateCompanyData = [
         return next();
       }
 
-      // Ejecutar validaciones manualmente usando .run(req)
       await check("companyName", "El nombre de la compañía es obligatorio")
         .notEmpty()
         .run(req);

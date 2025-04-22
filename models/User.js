@@ -1,7 +1,18 @@
+/*********************************************************************
+ *  MODELO: User
+ *  -> Representa a los usuarios del sistema (credenciales y datos perfil)
+ *********************************************************************/
 const mongoose = require("mongoose");
 const mongooseDelete = require("mongoose-delete");
 const Schema = mongoose.Schema;
 
+/* Campos principales de autenticación
+ *   email      -> identificador único del usuario (login)
+ *   password   -> hash de la contraseña
+ *   status     -> estado (0 pendiente de verificación, 1 activo)
+ *   role       -> rol de autorización ("user", "admin")
+ *   verificationCode / attempts -> gestión del proceso de alta y bloqueo
+ */
 const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -15,7 +26,7 @@ const UserSchema = new Schema({
   surnames: { type: String, default: "" },
   nif: { type: String, default: "" },
 
-  // Dirección
+  // Dirección particular
   address: {
     street: { type: String, default: "" },
     number: { type: Number, default: null },
@@ -24,7 +35,7 @@ const UserSchema = new Schema({
     province: { type: String, default: "" },
   },
 
-  // Datos de la compañía
+  // Datos de la compañía (si el usuario pertenece a una empresa)
   company: {
     name: { type: String, default: "" },
     cif: { type: String, default: "" },
@@ -35,12 +46,12 @@ const UserSchema = new Schema({
     province: { type: String, default: "" },
   },
 
-  logo: { type: String, default: "" },
-  passwordRecoveryCode: { type: String, default: "" },
+  logo: { type: String, default: "" }, // URL del logo de la empresa/usuario
+  passwordRecoveryCode: { type: String, default: "" }, // para reset de contraseña
 });
 
-// Se aplica el plugin para soft delete. Con { overrideMethods: "all" }
-// se sobrescriben los métodos find, findOne, etc. para no devolver documentos borrados.
+// Soft‑delete -> en lugar de borrar físicamente, marca el documento.
+// deletedAt añade la marca de tiempo de borrado.
 UserSchema.plugin(mongooseDelete, { overrideMethods: "all", deletedAt: true });
 
 module.exports = mongoose.model("User", UserSchema);

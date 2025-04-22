@@ -1,8 +1,33 @@
+/****************************************************************************************
+ *  CLIENT CONTROLLER
+ *  --------------------------------------------------------------------------------------
+ *  CRUD completo de clientes + soft‑delete / restore:
+ *    -> createClient          Alta de cliente asignado al usuario (y CIF)
+ *    -> updateClient          Edición (solo autor)
+ *    -> getClients            Lista: propios o mismo CIF
+ *    -> getClientById         Detalle con control de acceso
+ *    -> softDeleteClient      Archivado (mongoose‑delete)
+ *    -> hardDeleteClient      Eliminación definitiva
+ *    -> getArchivedClients    Lista de clientes archivados
+ *    -> recoverClient         Restaurar cliente archivado
+ *
+ *  Permisos
+ *  --------
+ *   - createdBy === req.user._id             -> acceso siempre permitido
+ *   - Si el usuario pertenece a una empresa  -> comparte clientes con su mismo CIF
+ *     (solo para lectura; creación/edición requieren ser el autor).
+ ****************************************************************************************/
+
 const Client = require("../models/Client");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const { handleHttpError } = require("../utils/handleError");
 
+/* ======================================================================================
+ *  CREATE CLIENT
+ *  --------------------------------------------------------------------------------------
+ *  - copia body + createdBy + cif explícito
+ * ==================================================================================== */
 const createClient = async (req, res) => {
   try {
     const client = new Client({
@@ -18,6 +43,11 @@ const createClient = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  UPDATE CLIENT
+ *  --------------------------------------------------------------------------------------
+ *  - Sólo el autor puede editar
+ * ==================================================================================== */
 const updateClient = async (req, res) => {
   try {
     const clientId = req.params.id;
@@ -44,6 +74,14 @@ const updateClient = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  GET CLIENTS
+ *  --------------------------------------------------------------------------------------
+ *  - Filtra:
+ *      – Propios (createdBy)
+ *      – Mismo CIF (si el usuario tiene company.cif)
+ *  - Construye array filters y usa $or
+ * ==================================================================================== */
 const getClients = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -51,6 +89,7 @@ const getClients = async (req, res) => {
     const user = await User.findById(userId).select("company.cif");
     const userCif = user?.company?.cif;
 
+    // Propios siempre; añade filtro por CIF si existe
     const filters = [{ createdBy: userId }];
     if (userCif) {
       filters.push({ cif: userCif });
@@ -65,6 +104,11 @@ const getClients = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  GET CLIENT BY ID
+ *  --------------------------------------------------------------------------------------
+ *  - Permite acceso si es autor o comparte CIF
+ * ==================================================================================== */
 const getClientById = async (req, res) => {
   try {
     const clientId = req.params.id;
@@ -73,7 +117,6 @@ const getClientById = async (req, res) => {
     }
 
     const userId = req.user._id;
-
     const user = await User.findById(userId).select("company.cif");
     const userCif = user?.company?.cif;
 
@@ -99,6 +142,11 @@ const getClientById = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  SOFT DELETE CLIENT
+ *  --------------------------------------------------------------------------------------
+ *  - Solo autor -> .delete() (mongoose-delete)
+ * ==================================================================================== */
 const softDeleteClient = async (req, res) => {
   try {
     const clientId = req.params.id;
@@ -130,6 +178,11 @@ const softDeleteClient = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  HARD DELETE CLIENT
+ *  --------------------------------------------------------------------------------------
+ *  - Eliminación permanente (autor únicamente)
+ * ==================================================================================== */
 const hardDeleteClient = async (req, res) => {
   try {
     const clientId = req.params.id;
@@ -158,6 +211,9 @@ const hardDeleteClient = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  GET ARCHIVED CLIENTS -> solo los borrados lógicamente del usuario
+ * ==================================================================================== */
 const getArchivedClients = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -173,6 +229,9 @@ const getArchivedClients = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  RECOVER CLIENT -> restaurar un cliente soft‑deleted
+ * ==================================================================================== */
 const recoverClient = async (req, res) => {
   try {
     const clientId = req.params.id;
@@ -197,6 +256,9 @@ const recoverClient = async (req, res) => {
   }
 };
 
+/* ======================================================================================
+ *  EXPORTS
+ * ==================================================================================== */
 module.exports = {
   createClient,
   updateClient,

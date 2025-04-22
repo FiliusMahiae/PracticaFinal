@@ -2,7 +2,6 @@
 
 @token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhNDU0OTZlMWIzNGE2YTVmMmZiOTMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ1NTAwMywiZXhwIjoxNzQ0NDYyMjAzfQ.1PVeYLkIPXNSUVCG7QqHo-zF9i8d9a1mr7VTHHmH0Tk
 
-
 ### Crear proyecto
 POST http://localhost:8080/api/project
 Authorization: Bearer {{token}}

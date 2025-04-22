@@ -1,14 +1,24 @@
+// Ruteador dinámico -> detecta todos los ficheros de este directorio y los
+// expone como sub‑rutas con su nombre de archivo.
+//
+// Ejemplo:
+//   auth.js     -> /auth
+//   projects.js -> /projects
+//
 const express = require("express");
 const fs = require("fs");
 
 const router = express.Router();
+
+// removeExtension("users.js") -> "users"
 const removeExtension = (fileName) => fileName.split(".").shift();
 
-// Lee todos los archivos en el directorio de rutas y los monta
+// Recorre todos los archivos dentro del directorio actual (__dirname)
+// y monta aquellos que no sean index.js
 fs.readdirSync(__dirname).forEach((file) => {
   const name = removeExtension(file);
   if (name !== "index") {
-    // Se monta la ruta con el nombre del archivo, por ejemplo: /user
+    // Monta la ruta base '/<nombreArchivo>' y delega en el router correspondiente
     router.use("/" + name, require("./" + name));
   }
 });
