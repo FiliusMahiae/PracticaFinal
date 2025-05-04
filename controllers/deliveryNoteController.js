@@ -16,6 +16,7 @@
  *    - Readable.from(buffer) -> convierte Buffer a stream para piping HTTP
  ****************************************************************************************/
 
+const { matchedData } = require("express-validator");
 const DeliveryNote = require("../models/DeliveryNote");
 const { Readable } = require("stream");
 const generatePdfBuffer = require("../utils/handlePdf");
@@ -26,18 +27,19 @@ const mongoose = require("mongoose");
 /* ======================================================================================
  *  CREATE DELIVERY NOTE
  *  --------------------------------------------------------------------------------------
- *  - Recoge los campos del body y los encapsula en payload
+ *  - Recoge los campos validados del body con matchedData y los encapsula en payload
  *  - Guarda documento y devuelve 201
  * ==================================================================================== */
 const createDeliveryNote = async (req, res) => {
   try {
     const userId = req.user._id;
-
+    // Extraemos solo los campos validados
+    const data = matchedData(req);
     const payload = {
-      projectId: req.body.projectId,
-      description: req.body.description || "",
-      workEntries: req.body.workEntries || [],
-      materialEntries: req.body.materialEntries || [],
+      projectId: data.projectId,
+      description: data.description || "",
+      workEntries: data.workEntries || [],
+      materialEntries: data.materialEntries || [],
       createdBy: userId,
     };
 
@@ -118,7 +120,7 @@ const getDeliveryNoteById = async (req, res) => {
  *  Flujo:
  *    1) Verifica acceso (propietario o invitado con role guest)
  *    2) generatePdfBuffer(note) -> Buffer
- *    3) Sube buffer a Pinata, guarda pdfUrl con IpfsHash
+ *    3) Subir buffer a Pinata, guarda pdfUrl con IpfsHash
  *    4) Devuelve el PDF como attachment (stream)
  *  Detalle de permisos invitado:
  *    - token JWT debe incluir role='guest' y invitedBy = creador del albarán

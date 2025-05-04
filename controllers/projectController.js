@@ -21,6 +21,7 @@
  *   - Soft‑delete: usa mongoose‑delete -> métodos .delete(), .findDeleted(), .restore().
  ****************************************************************************************/
 
+const { matchedData } = require("express-validator");
 const Project = require("../models/Project");
 const User = require("../models/User");
 const { handleHttpError } = require("../utils/handleError");
@@ -35,7 +36,9 @@ const mongoose = require("mongoose");
  * ==================================================================================== */
 const createProject = async (req, res) => {
   try {
-    const { name, projectCode } = req.body;
+    // Extraemos sólo los campos validados
+    const { name, projectCode, email, code, clientId, address } =
+      matchedData(req);
     const userId = req.user._id;
 
     // Obtener el CIF de la empresa del usuario (si existe)
@@ -54,19 +57,25 @@ const createProject = async (req, res) => {
         companyCif ? { companyCif, $or: [{ name }, { projectCode }] } : null,
       ].filter(Boolean),
     });
-
     if (existing) {
-      return handleHttpError(
+      handleHttpError(
         res,
         "Ya existe un proyecto con ese nombre o código",
         409
       );
+      return;
     }
 
+    // Crear nuevo proyecto con sólo los campos validados
     const newProject = new Project({
-      ...req.body,
+      name,
+      projectCode,
+      email,
+      code,
+      clientId,
       createdBy: userId,
       companyCif,
+      ...(address ? { address } : {}),
     });
 
     await newProject.save();
@@ -89,14 +98,16 @@ const createProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const projectId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return handleHttpError(res, "ID de proyecto inválido", 400);
+      handleHttpError(res, "ID de proyecto inválido", 400);
+      return;
     }
 
+    // Obtener CIF de la empresa del usuario
     const user = await User.findById(req.user._id).select("company.cif");
     const companyCif = user?.company?.cif || null;
 
+    // Buscar proyecto con permisos
     const project = await Project.findOne({
       _id: projectId,
       $or: [
@@ -104,25 +115,22 @@ const updateProject = async (req, res) => {
         companyCif ? { companyCif } : null,
       ].filter(Boolean),
     });
-
     if (!project) {
-      return handleHttpError(
-        res,
-        "Proyecto no encontrado o no autorizado",
-        404
-      );
+      handleHttpError(res, "Proyecto no encontrado o no autorizado", 404);
+      return;
     }
 
-    Object.assign(project, { ...req.body, companyCif }); // merge sin sobrescribir _id
-    await project.save();
+    // Extraemos sólo los campos validados para actualizar
+    const updates = matchedData(req);
+    Object.assign(project, { ...updates, companyCif });
 
+    await project.save();
     res.json({ message: "Proyecto actualizado correctamente", project });
   } catch (err) {
     console.error(err);
     handleHttpError(res, "Error al actualizar el proyecto", 400);
   }
 };
-
 /* ======================================================================================
  *  GET PROJECTS -> lista activa (no borrados)
  * ==================================================================================== */
@@ -151,9 +159,9 @@ const getProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const projectId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return handleHttpError(res, "ID inválido", 400);
+      handleHttpError(res, "ID inválido", 400);
+      return;
     }
 
     const user = await User.findById(req.user._id).select("company.cif");
@@ -168,11 +176,8 @@ const getProjectById = async (req, res) => {
     }).populate("clientId");
 
     if (!project) {
-      return handleHttpError(
-        res,
-        "Proyecto no encontrado o no autorizado",
-        404
-      );
+      handleHttpError(res, "Proyecto no encontrado o no autorizado", 404);
+      return;
     }
 
     res.json({ project });
@@ -188,9 +193,9 @@ const getProjectById = async (req, res) => {
 const softDeleteProject = async (req, res) => {
   try {
     const projectId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return handleHttpError(res, "ID inválido", 400);
+      handleHttpError(res, "ID inválido", 400);
+      return;
     }
 
     const user = await User.findById(req.user._id).select("company.cif");
@@ -203,16 +208,12 @@ const softDeleteProject = async (req, res) => {
         companyCif ? { companyCif } : null,
       ].filter(Boolean),
     });
-
     if (!project) {
-      return handleHttpError(
-        res,
-        "Proyecto no encontrado o no autorizado",
-        404
-      );
+      handleHttpError(res, "Proyecto no encontrado o no autorizado", 404);
+      return;
     }
 
-    await project.delete(); // soft delete
+    await project.delete();
     res.json({ message: "Proyecto archivado correctamente" });
   } catch (err) {
     console.error(err);
@@ -226,9 +227,9 @@ const softDeleteProject = async (req, res) => {
 const hardDeleteProject = async (req, res) => {
   try {
     const projectId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return handleHttpError(res, "ID inválido", 400);
+      handleHttpError(res, "ID inválido", 400);
+      return;
     }
 
     const user = await User.findById(req.user._id).select("company.cif");
@@ -241,16 +242,12 @@ const hardDeleteProject = async (req, res) => {
         companyCif ? { companyCif } : null,
       ].filter(Boolean),
     });
-
     if (!project) {
-      return handleHttpError(
-        res,
-        "Proyecto no encontrado o no autorizado",
-        404
-      );
+      handleHttpError(res, "Proyecto no encontrado o no autorizado", 404);
+      return;
     }
 
-    await Project.deleteOne({ _id: projectId }); // hard delete
+    await Project.deleteOne({ _id: projectId });
     res.json({ message: "Proyecto eliminado permanentemente" });
   } catch (err) {
     console.error(err);
@@ -290,9 +287,9 @@ const getArchivedProjects = async (req, res) => {
 const restoreProject = async (req, res) => {
   try {
     const projectId = req.params.id;
-
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return handleHttpError(res, "ID inválido", 400);
+      handleHttpError(res, "ID inválido", 400);
+      return;
     }
 
     const user = await User.findById(req.user._id).select("company.cif");
@@ -305,12 +302,12 @@ const restoreProject = async (req, res) => {
         companyCif ? { companyCif } : null,
       ].filter(Boolean),
     });
-
     if (!project) {
-      return handleHttpError(res, "Proyecto no encontrado o no archivado", 404);
+      handleHttpError(res, "Proyecto no encontrado o no archivado", 404);
+      return;
     }
 
-    await project.restore(); // des‑marca deleted
+    await project.restore();
     res.json({ message: "Proyecto restaurado correctamente", project });
   } catch (err) {
     console.error(err);

@@ -22,6 +22,7 @@ const Client = require("../models/Client");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const { handleHttpError } = require("../utils/handleError");
+const { matchedData } = require("express-validator");
 
 /* ======================================================================================
  *  CREATE CLIENT
@@ -30,10 +31,11 @@ const { handleHttpError } = require("../utils/handleError");
  * ==================================================================================== */
 const createClient = async (req, res) => {
   try {
+    const data = matchedData(req);
     const client = new Client({
-      ...req.body,
-      createdBy: req.user._id,
-      cif: req.body.cif,
+      ...data,
+      createdBy: req.user._id, // se añade explícitamente
+      cif: data.cif, // idem
     });
     await client.save();
     res.status(201).json({ message: "Cliente creado correctamente", client });
@@ -64,7 +66,8 @@ const updateClient = async (req, res) => {
       return handleHttpError(res, "Cliente no encontrado o no autorizado", 404);
     }
 
-    Object.assign(client, req.body);
+    const data = matchedData(req);
+    client.set(data);
     await client.save();
 
     res.json({ message: "Cliente actualizado correctamente", client });
