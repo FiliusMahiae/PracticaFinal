@@ -1,6 +1,6 @@
 ### Guardar el token que recibido
 
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhNDU0OTZlMWIzNGE2YTVmMmZiOTMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ1NTAwMywiZXhwIjoxNzQ0NDYyMjAzfQ.1PVeYLkIPXNSUVCG7QqHo-zF9i8d9a1mr7VTHHmH0Tk
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGYwYjZmYjkxZTNjNjJlNTQ3MmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1ODAyOCwiZXhwIjoxNzQ2MzY1MjI4fQ.DSxFLW3qfkffhhpC8QV1f3VeZB0BlTdw0XweLvK5gWY
 
 ### Crear proyecto
 POST http://localhost:8080/api/project
@@ -12,7 +12,7 @@ Content-Type: application/json
   "projectCode": "PRM001",
   "email": "proyecto@mail.com",
   "code": "CODINT01",
-  "clientId": "67f3a083a57aa840151e8c3a",
+  "clientId": "68175291bd7ec9e4d05f7999",
   "address": {
     "street": "Carlos V",
     "number": 22,
@@ -23,7 +23,7 @@ Content-Type: application/json
 }
 
 ### Actualizar proyecto
-PUT http://localhost:8080/api/project/67f3a74e806f5734190ac73c
+PUT http://localhost:8080/api/project/68174f92453b27fcbac7784c
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -37,15 +37,15 @@ GET http://localhost:8080/api/project
 Authorization: Bearer {{token}}
 
 ### Obtener un proyecto específico
-GET http://localhost:8080/api/project/one/67f4115850437a84658ab05b
+GET http://localhost:8080/api/project/one/68174f92453b27fcbac7784c
 Authorization: Bearer {{token}}
 
 ### Archivar (soft delete) un proyecto
-DELETE http://localhost:8080/api/project/archive/67f4115850437a84658ab05b
+DELETE http://localhost:8080/api/project/archive/68174f92453b27fcbac7784c
 Authorization: Bearer {{token}}
 
 ### Eliminar (hard delete) un proyecto definitivamente
-DELETE http://localhost:8080/api/project/67f4115850437a84658ab05b
+DELETE http://localhost:8080/api/project/68174f92453b27fcbac7784c
 Authorization: Bearer {{token}}
 
 ### Obtener todos los proyectos archivados
@@ -53,5 +53,5 @@ GET http://localhost:8080/api/project/archive
 Authorization: Bearer {{token}}
 
 ### Restaurar un proyecto archivado
-PATCH http://localhost:8080/api/project/restore/67f4115850437a84658ab05b
+PATCH http://localhost:8080/api/project/restore/68174f92453b27fcbac7784c
 Authorization: Bearer {{token}}

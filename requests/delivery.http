@@ -1,4 +1,4 @@
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2Y1NjlhYmY5Yzg4MGI2OWY5NDZkNmYiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDM4NjkzNSwiZXhwIjoxNzQ0Mzk0MTM1fQ.epOvf5aiS17XmYlVXV4JPXVzvopjg5esPhMh8JKPCbw
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGYwYjZmYjkxZTNjNjJlNTQ3MmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1ODQ4MSwiZXhwIjoxNzQ2MzY1NjgxfQ.lvX3RchP8hWgZl8hHJasg91vW-skYqNjy96CeNzcuto
 
 ### Crear albarán con personas y materiales
 POST http://localhost:8080/api/deliverynote
@@ -6,7 +6,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "projectId": "67f551616517559dbe7f7347",
+  "projectId": "68175299bd7ec9e4d05f799e",
   "description": "Instalación completa realizada el viernes",
   "workEntries": [
     {
@@ -35,16 +35,16 @@ GET http://localhost:8080/api/deliverynote
 Authorization: Bearer {{token}}
 
 ### Obtener un albarán por ID
-GET http://localhost:8080/api/deliverynote/67f93b8ad5cf5f3e8d52e198
+GET http://localhost:8080/api/deliverynote/68175337a89db1c75bae8346
 Authorization: Bearer {{token}}
 
 ### 4. Descargar el PDF del albarán (si no está en IPFS, lo sube)
-GET http://localhost:8080/api/deliverynote/pdf/67f93b8ad5cf5f3e8d52e198
+GET http://localhost:8080/api/deliverynote/pdf/68175337a89db1c75bae8346
 Authorization: Bearer {{token}}
 
 
 ### 5. Firmar un albarán (sube firma, regenera y sube PDF firmado)
-PATCH http://localhost:8080/api/deliverynote/sign/67f93b8ad5cf5f3e8d52e198
+PATCH http://localhost:8080/api/deliverynote/sign/68175337a89db1c75bae8346
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=---011000010111000001101001
 
@@ -56,7 +56,7 @@ Content-Type: image/png
 -----011000010111000001101001--
 
 ### 6. Eliminar un albarán (solo si no está firmado)
-DELETE http://localhost:8080/api/deliverynote/6615b0f2894216ad26a5e999
+DELETE http://localhost:8080/api/deliverynote/68175337a89db1c75bae8346
 Authorization: Bearer {{token}}
 
 

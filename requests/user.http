@@ -7,6 +7,16 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### Registro de usuario AUTONOMO - Válido
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "email": "autonomo@gmail.com",
+  "password": "password123",
+  "autonomo": "true"
+}
+
 ### Registro de usuario - Email inválido (422)
 POST http://localhost:8080/api/users/register
 Content-Type: application/json
@@ -36,16 +46,16 @@ Content-Type: application/json
 
 ### Validar email - Código correcto
 PUT http://localhost:8080/api/users/validation
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3MzZhYTE0NTdjMGQ1NTZkMmM5NGUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1MTc4NiwiZXhwIjoxNzQ2MzU4OTg2fQ.gYMCzQgnWSvKJDOrKVZrsa1CnaxBRKaSN9pOYN2ospE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGJkZTJlOGNlZjcwMWVmNTMwNWUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1NzIxNCwiZXhwIjoxNzQ2MzY0NDE0fQ.egb5H1gRCJB26twpNoOUCS-Awm6rSykLbPcFPyvKYsM
 Content-Type: application/json
 
 {
-  "code": "867819"
+  "code": "443875"
 }
 
 ### Validar email - Código incorrecto
 PUT http://localhost:8080/api/users/validation
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDY0NiwiZXhwIjoxNzQzNDQxODQ2fQ.dA_8V4sPeliB93b3-KrIzfudrnGIXIYNmCO9f2jqzGk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGE3NGM0NDViNTU0ZDZkOWExMDIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1Njg1MiwiZXhwIjoxNzQ2MzY0MDUyfQ.PfB8YwMpyyLEe85g_UR_RMMKM3_yaCFBNjqtUheeL5Q
 Content-Type: application/json
 
 {
@@ -81,7 +91,7 @@ Content-Type: application/json
 
 ### Actualizar datos personales (onboarding)
 PUT http://localhost:8080/api/users/onboarding/personal
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3MzZhYTE0NTdjMGQ1NTZkMmM5NGUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1MTg2NSwiZXhwIjoxNzQ2MzU5MDY1fQ.0lHRRCvL4-UbIst6egEmkeomX1FGKEshXzPLqx6kdTI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGYwYjZmYjkxZTNjNjJlNTQ3MmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1ODAyOCwiZXhwIjoxNzQ2MzY1MjI4fQ.DSxFLW3qfkffhhpC8QV1f3VeZB0BlTdw0XweLvK5gWY
 Content-Type: application/json
 
 {
@@ -99,7 +109,7 @@ Content-Type: application/json
 
 ### Actualizar datos de la compañía (usuario normal)
 PATCH http://localhost:8080/api/users/onboarding/company
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3MzZhYTE0NTdjMGQ1NTZkMmM5NGUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1MTg2NSwiZXhwIjoxNzQ2MzU5MDY1fQ.0lHRRCvL4-UbIst6egEmkeomX1FGKEshXzPLqx6kdTI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGYwYjZmYjkxZTNjNjJlNTQ3MmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1ODAyOCwiZXhwIjoxNzQ2MzY1MjI4fQ.DSxFLW3qfkffhhpC8QV1f3VeZB0BlTdw0XweLvK5gWY
 Content-Type: application/json
 
 {
@@ -114,26 +124,26 @@ Content-Type: application/json
 
 ### Actualizar datos de la compañía (usuario autonomo)
 PATCH http://localhost:8080/api/users/onboarding/company
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGJkZTJlOGNlZjcwMWVmNTMwNWUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1NzI0MCwiZXhwIjoxNzQ2MzY0NDQwfQ.8HJIfhbjVoRHDeTJlvolTXL2TlvIlNfr_Qd36rKWsmk
 Content-Type: application/json
 
 {}
 
 ### Actualizar logo
 PATCH http://localhost:8080/api/users/logo
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGJkZTJlOGNlZjcwMWVmNTMwNWUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1NzI0MCwiZXhwIjoxNzQ2MzY0NDQwfQ.8HJIfhbjVoRHDeTJlvolTXL2TlvIlNfr_Qd36rKWsmk
 Content-Type: multipart/form-data; boundary=---011000010111000001101001
 
 -----011000010111000001101001
 Content-Disposition: form-data; name="image"; filename="logo.png"
 Content-Type: image/png
 
-< ./Curriculum2024.pdf
+< ./image.png
 -----011000010111000001101001--
 
 ### Obtener perfil del usuario
 GET http://localhost:8080/api/users/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3MzZhYTE0NTdjMGQ1NTZkMmM5NGUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1MTg2NSwiZXhwIjoxNzQ2MzU5MDY1fQ.0lHRRCvL4-UbIst6egEmkeomX1FGKEshXzPLqx6kdTI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGJkZTJlOGNlZjcwMWVmNTMwNWUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1NzI0MCwiZXhwIjoxNzQ2MzY0NDQwfQ.8HJIfhbjVoRHDeTJlvolTXL2TlvIlNfr_Qd36rKWsmk
 
 ### Eliminar usuario (soft delete)
 DELETE http://localhost:8080/api/users/?soft=true
@@ -141,7 +151,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5N
 
 ### Eliminar usuario (hard delete)
 DELETE http://localhost:8080/api/users/?soft=false
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhYjM5NjZhZjg1ZmIzZWI0YWE1NjgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0MzQzNDczMCwiZXhwIjoxNzQzNDQxOTMwfQ.cTeWahizv4mBuMZD2rhcfE8HjkJPMNNCE6wSU5v6cCQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGJkZTJlOGNlZjcwMWVmNTMwNWUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1NzI0MCwiZXhwIjoxNzQ2MzY0NDQwfQ.8HJIfhbjVoRHDeTJlvolTXL2TlvIlNfr_Qd36rKWsmk
 
 ### Solicitar recuperación de contraseña
 POST http://localhost:8080/api/users/recover/request

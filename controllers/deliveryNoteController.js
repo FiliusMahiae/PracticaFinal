@@ -45,6 +45,10 @@ const createDeliveryNote = async (req, res) => {
 
     const note = new DeliveryNote(payload);
     await note.save();
+    await note.populate([
+      { path: "projectId", select: "name projectCode" },
+      { path: "createdBy", select: "name email" },
+    ]);
 
     res.status(201).json({
       message: "Albarán creado correctamente",
@@ -65,7 +69,9 @@ const getDeliveryNotes = async (req, res) => {
 
     const deliveryNotes = await DeliveryNote.find({
       createdBy: userId,
-    });
+    })
+      .populate("projectId", "name projectCode")
+      .populate("createdBy", "name email");
 
     res.json({ deliveryNotes });
   } catch (err) {
@@ -107,6 +113,10 @@ const getDeliveryNoteById = async (req, res) => {
       return handleHttpError(res, "Albarán no encontrado o no autorizado", 404);
     }
 
+    await deliveryNote.populate([
+      { path: "projectId", select: "name projectCode" },
+      { path: "createdBy", select: "name email" },
+    ]);
     res.json({ deliveryNote });
   } catch (err) {
     console.error(err);

@@ -3,14 +3,13 @@ POST http://localhost:8080/api/users/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "sergio.mahiarello@gmail.com",
   "password": "password123"
 }
 
 ### Guardar el token que recibido
 
-@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2ZhMmI4ZmM3YjkzMjcxM2VjNDg4NDgiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NDQ0ODQzOSwiZXhwIjoxNzQ0NDU1NjM5fQ.ksd-5Zqhx4-OX838Ez0kAfPoHwl9-GDhoAs-vRKKmh4
-
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE3NGYwYjZmYjkxZTNjNjJlNTQ3MmEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc0NjM1ODQ4MSwiZXhwIjoxNzQ2MzY1NjgxfQ.lvX3RchP8hWgZl8hHJasg91vW-skYqNjy96CeNzcuto
 ### Obtener todos los clientes
 GET http://localhost:8080/api/client
 Authorization: Bearer {{token}}
@@ -35,11 +34,11 @@ Content-Type: application/json
 }
 
 ### Obtener cliente por ID
-GET http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
+GET http://localhost:8080/api/client/6817520cf867d27e4274d0d6
 Authorization: Bearer {{token}}
 
 ### Actualizar cliente
-PUT http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
+PUT http://localhost:8080/api/client/6817520cf867d27e4274d0d6
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -48,7 +47,7 @@ Content-Type: application/json
 }
 
 ### Archivar cliente (soft delete)
-DELETE http://localhost:8080/api/client/archive/67fa2dfe7ca5a5ab936c0fd4
+DELETE http://localhost:8080/api/client/archive/6817520cf867d27e4274d0d6
 Authorization: Bearer {{token}}
 
 ### Obtener clientes archivados
@@ -56,11 +55,11 @@ GET http://localhost:8080/api/client/archive
 Authorization: Bearer {{token}}
 
 ### Restaurar cliente archivado
-PATCH http://localhost:8080/api/client/restore/67fa2dfe7ca5a5ab936c0fd4
+PATCH http://localhost:8080/api/client/restore/6817520cf867d27e4274d0d6
 Authorization: Bearer {{token}}
 
 ### Eliminar cliente completamente (hard delete)
-DELETE http://localhost:8080/api/client/67fa2dfe7ca5a5ab936c0fd4
+DELETE http://localhost:8080/api/client/6817520cf867d27e4274d0d6
 Authorization: Bearer {{token}}
 
 

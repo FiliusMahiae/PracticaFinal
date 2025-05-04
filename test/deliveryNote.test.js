@@ -96,7 +96,7 @@ describe("POST /api/deliveryNote - Crear albarán", () => {
       "Nuevo Albarán"
     );
     expect(res.body.deliveryNote).toHaveProperty(
-      "createdBy",
+      "createdBy._id",
       user._id.toString()
     );
   });

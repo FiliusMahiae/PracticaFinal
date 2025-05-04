@@ -110,7 +110,10 @@ describe("POST /api/project - Crear proyecto", () => {
     expect(res.body).toHaveProperty("message", "Proyecto creado correctamente");
     expect(res.body.project).toHaveProperty("name", "Proyecto Nuevo");
     expect(res.body.project).toHaveProperty("projectCode", "PROJ-NEW-001");
-    expect(res.body.project).toHaveProperty("createdBy", user._id.toString());
+    expect(res.body.project).toHaveProperty(
+      "createdBy._id",
+      user._id.toString()
+    );
   });
 
   it("Error 401 si no se envía token", async () => {

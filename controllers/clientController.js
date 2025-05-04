@@ -38,6 +38,7 @@ const createClient = async (req, res) => {
       cif: data.cif, // idem
     });
     await client.save();
+    await client.populate([{ path: "createdBy", select: "name email" }]);
     res.status(201).json({ message: "Cliente creado correctamente", client });
   } catch (err) {
     console.error(err);
@@ -69,6 +70,7 @@ const updateClient = async (req, res) => {
     const data = matchedData(req);
     client.set(data);
     await client.save();
+    await client.populate([{ path: "createdBy", select: "name email" }]);
 
     res.json({ message: "Cliente actualizado correctamente", client });
   } catch (err) {
@@ -98,7 +100,10 @@ const getClients = async (req, res) => {
       filters.push({ cif: userCif });
     }
 
-    const clients = await Client.find({ $or: filters });
+    const clients = await Client.find({ $or: filters }).populate(
+      "createdBy",
+      "email name"
+    );
 
     res.json({ clients });
   } catch (err) {
@@ -138,6 +143,7 @@ const getClientById = async (req, res) => {
       );
     }
 
+    await client.populate([{ path: "createdBy", select: "name email" }]);
     res.json({ client });
   } catch (err) {
     console.error(err);
@@ -223,7 +229,7 @@ const getArchivedClients = async (req, res) => {
 
     const clients = await Client.findDeleted({
       createdBy: userId,
-    });
+    }).populate("createdBy", "email name");
 
     res.json({ clients });
   } catch (err) {
@@ -252,6 +258,7 @@ const recoverClient = async (req, res) => {
     }
 
     await client.restore();
+    await client.populate([{ path: "createdBy", select: "name email" }]);
     res.json({ message: "Cliente restaurado correctamente", client });
   } catch (err) {
     console.error(err);

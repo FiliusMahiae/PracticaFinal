@@ -79,6 +79,10 @@ const createProject = async (req, res) => {
     });
 
     await newProject.save();
+    await newProject.populate([
+      { path: "clientId", select: "name email" },
+      { path: "createdBy", select: "name email" },
+    ]);
     res
       .status(201)
       .json({ message: "Proyecto creado correctamente", project: newProject });
@@ -125,6 +129,10 @@ const updateProject = async (req, res) => {
     Object.assign(project, { ...updates, companyCif });
 
     await project.save();
+    await project.populate([
+      { path: "clientId", select: "name email" },
+      { path: "createdBy", select: "name email" },
+    ]);
     res.json({ message: "Proyecto actualizado correctamente", project });
   } catch (err) {
     console.error(err);
@@ -144,8 +152,9 @@ const getProjects = async (req, res) => {
       $or: [{ createdBy: userId }, companyCif ? { companyCif } : null].filter(
         Boolean
       ),
-    }).populate("clientId");
-
+    })
+      .populate("clientId")
+      .populate("createdBy", "email name");
     res.json({ projects });
   } catch (err) {
     console.error(err);
@@ -180,6 +189,10 @@ const getProjectById = async (req, res) => {
       return;
     }
 
+    await project.populate([
+      { path: "clientId", select: "name email" },
+      { path: "createdBy", select: "name email" },
+    ]);
     res.json({ project });
   } catch (err) {
     console.error(err);
@@ -268,7 +281,9 @@ const getArchivedProjects = async (req, res) => {
       $or: [{ createdBy: userId }, companyCif ? { companyCif } : null].filter(
         Boolean
       ),
-    }).populate("clientId");
+    })
+      .populate("clientId")
+      .populate("createdBy", "email name");
 
     res.json({ projects });
   } catch (err) {
@@ -308,6 +323,10 @@ const restoreProject = async (req, res) => {
     }
 
     await project.restore();
+    await project.populate([
+      { path: "clientId", select: "name email" },
+      { path: "createdBy", select: "name email" },
+    ]);
     res.json({ message: "Proyecto restaurado correctamente", project });
   } catch (err) {
     console.error(err);

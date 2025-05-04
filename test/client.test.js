@@ -66,7 +66,10 @@ describe("POST /api/client - Crear cliente", () => {
     expect(res.body).toHaveProperty("message", "Cliente creado correctamente");
     expect(res.body.client).toHaveProperty("name", "Cliente Uno");
     expect(res.body.client).toHaveProperty("cif", "CIF-DEL-BODY-001");
-    expect(res.body.client).toHaveProperty("createdBy", user._id.toString());
+    expect(res.body.client).toHaveProperty(
+      "createdBy._id",
+      user._id.toString()
+    );
   });
 
   it("Debe fallar sin token (401)", async () => {
