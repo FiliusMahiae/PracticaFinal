@@ -8,5 +8,12 @@ exports.validateUser = [
   check("password", "La contraseña debe tener al menos 8 caracteres").isLength({
     min: 8,
   }),
+
+  // Validación de autonomo con check en lugar de body
+  check("autonomo", "El campo autonomo debe ser booleano")
+    .optional()
+    .isBoolean()
+    .toBoolean(),
+
   validatorResults,
 ];

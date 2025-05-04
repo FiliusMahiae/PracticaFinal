@@ -17,7 +17,8 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   status: { type: Number, default: 0 },
-  role: { type: String, default: "user" },
+  role: { type: String, enum: ["user", "admin", "guest"], default: "user" },
+  isAutonomo: { type: Boolean, default: false },
   verificationCode: { type: String },
   attempts: { type: Number, default: 3 },
 
@@ -44,6 +45,12 @@ const UserSchema = new Schema({
     postal: { type: Number, default: null },
     city: { type: String, default: "" },
     province: { type: String, default: "" },
+  },
+
+  companyOwner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
   },
 
   logo: { type: String, default: "" }, // URL del logo de la empresa/usuario

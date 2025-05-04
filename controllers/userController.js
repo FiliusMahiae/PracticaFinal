@@ -25,6 +25,7 @@ const { handleHttpError } = require("../utils/handleError");
 const uploadToPinata = require("../utils/handleUploadIPFS");
 const { tokenSignRecovery } = require("../utils/handleJwt");
 const { sendEmail } = require("../utils/hanldeMail");
+const { matchedData } = require("express-validator");
 
 /* 6‑dígitos aleatorios -> código de verificación / recuperación */
 function generateVerificationCode() {
@@ -41,7 +42,8 @@ function generateVerificationCode() {
  *  5) Devuelve JWT para sesión provisional (aun sin validar email)
  * ==================================================================================== */
 const register = async (req, res) => {
-  const { email, password } = req.body;
+  const data = matchedData(req);
+  const { email, password, autonomo } = data;
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -56,26 +58,24 @@ const register = async (req, res) => {
       password: hashedPassword,
       verificationCode,
       attempts: process.env.MAX_ATTEMPTS || 3,
+      isAutonomo: autonomo || false,
     });
     await user.save();
 
     // Envío de código de verificación
-    await sendEmail({
-      from: `"PracticaFinal" <${process.env.EMAIL}>`,
-      to: email,
-      subject: "Código de verificación",
-      text: `Tu código de verificación es: ${verificationCode}`,
-      html: `<p>Tu código de verificación es: <b>${verificationCode}</b></p>`,
-    });
+    // await sendEmail({
+    //   from: `"PracticaFinal" <${process.env.EMAIL}>`,
+    //   to: email,
+    //   subject: "Código de verificación",
+    //   text: `Tu código de verificación es: ${verificationCode}`,
+    //   html: `<p>Tu código de verificación es: <b>${verificationCode}</b></p>`,
+    // });
 
     const token = await tokenSign(user); // SESIÓN ABIERTA
-    return res.json({
+    res.json({
       token,
       user: {
-        _id: user._id,
         email: user.email,
-        status: user.status,
-        role: user.role,
       },
     });
   } catch (error) {
@@ -92,37 +92,43 @@ const register = async (req, res) => {
  *  • Cambia status = 1 al validar
  * ==================================================================================== */
 const validateEmail = async (req, res) => {
-  const { code } = req.body;
+  const data = matchedData(req);
+  const { code } = data;
   const userId = req.user._id;
+
   try {
     const user = await User.findById(userId);
     if (!user) {
       return handleHttpError(res, "Usuario no encontrado", 404);
     }
 
+    // Caso exitoso
     if (user.verificationCode === code) {
       user.status = 1; // validado
-      user.verificationCode = null; // opcionalmente se limpia
+      user.verificationCode = null; // limpiamos el código
       await user.save();
-      return res.json({ message: "Email validado correctamente" });
-    } else {
-      // Código incorrecto -> decrementa intentos y bloquea al agotarse
-      if (user.attempts > 0) {
-        user.attempts = user.attempts - 1;
-      }
-      await user.save();
-      if (user.attempts <= 0) {
-        return handleHttpError(res, "Número máximo de intentos alcanzado", 403);
-      }
-      return handleHttpError(
-        res,
-        `Código inválido. Quedan ${user.attempts} intentos`,
-        400
-      );
+      res.json({ message: "Email validado correctamente" });
+      return;
     }
+
+    // Caso de código inválido: decrementamos intentos y guardamos
+    user.attempts = Math.max(user.attempts - 1, 0);
+    await user.save();
+
+    // Si ya no quedan intentos, bloqueamos
+    if (user.attempts === 0) {
+      return handleHttpError(res, "Número máximo de intentos alcanzado", 403);
+    }
+
+    // Si quedan intentos, informamos al usuario
+    return handleHttpError(
+      res,
+      `Código inválido. Quedan ${user.attempts} intentos`,
+      400
+    );
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -134,7 +140,8 @@ const validateEmail = async (req, res) => {
  *  • Devuelve JWT + datos básicos
  * ==================================================================================== */
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const data = matchedData(req);
+  const { email, password } = data;
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -145,18 +152,15 @@ const login = async (req, res) => {
       return handleHttpError(res, "Credenciales incorrectas", 400);
     }
     const token = await tokenSign(user);
-    return res.json({
+    res.json({
       token,
       user: {
-        _id: user._id,
         email: user.email,
-        status: user.status,
-        role: user.role,
       },
     });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -166,7 +170,8 @@ const login = async (req, res) => {
  *  -> Permite modificar nombre, apellidos, nif y dirección
  * ==================================================================================== */
 const updatePersonalData = async (req, res) => {
-  const { nombre, apellidos, nif, address } = req.body;
+  const data = matchedData(req);
+  const { nombre, apellidos, nif, address } = data;
   const userId = req.user._id;
 
   try {
@@ -191,7 +196,7 @@ const updatePersonalData = async (req, res) => {
 
     await user.save();
 
-    return res.json({
+    res.json({
       message: "Datos personales actualizados correctamente",
       user: {
         _id: user._id,
@@ -203,30 +208,40 @@ const updatePersonalData = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
 /* ======================================================================================
  *  ACTUALIZAR DATOS DE COMPAÑÍA
  *  --------------------------------------------------------------------------------------
- *  • Para role === “autonomo” clona los datos personales -> company
+ *  • Para autonomo clona los datos personales -> company
  *  • Para otros roles usa los campos proporcionados en el body
  * ==================================================================================== */
 const updateCompanyData = async (req, res) => {
-  const { companyName, cif, street, number, postal, city, province } = req.body;
+  const data = matchedData(req, { locations: ["body"] });
+  const { companyName, cif, street, number, postal, city, province } = data;
   const userId = req.user._id;
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return handleHttpError(res, "Usuario no encontrado", 404);
+      handleHttpError(res, "Usuario no encontrado", 404);
+      return;
     }
 
-    if (user.role === "autonomo") {
-      // Autónomo -> la “empresa” es él mismo
+    if (user.role === "guest") {
+      handleHttpError(
+        res,
+        "Los usuarios invitados no pueden modificar la compañía",
+        403
+      );
+      return;
+    }
+
+    if (user.isAutonomo) {
       user.company = {
-        name: `${user.name || ""} ${user.surnames || ""}`.trim(),
+        name: [user.name, user.surnames].filter(Boolean).join(" "),
         cif: user.nif,
         street: user.address?.street || "",
         number: user.address?.number || null,
@@ -247,14 +262,13 @@ const updateCompanyData = async (req, res) => {
     }
 
     await user.save();
-
-    return res.json({
+    res.json({
       message: "Datos de la compañía actualizados correctamente",
       company: user.company,
     });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -285,13 +299,13 @@ const updateLogo = async (req, res) => {
       { logo: ipfs },
       { new: true }
     );
-    return res.json({
+    res.json({
       message: "Logo actualizado correctamente",
       logo: updatedUser.logo,
     });
   } catch (err) {
     console.error(err);
-    return handleHttpError(res, "ERROR_UPLOAD_LOGO", 500);
+    handleHttpError(res, "ERROR_UPLOAD_LOGO", 500);
   }
 };
 
@@ -300,12 +314,37 @@ const updateLogo = async (req, res) => {
  * ==================================================================================== */
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if (!user) return handleHttpError(res, "Usuario no encontrado", 404);
-    return res.json({ user });
+    const query = User.findById(req.user._id);
+    if (req.user.role === "guest") {
+      query.populate("companyOwner", "company");
+    }
+    const user = await query;
+
+    if (!user) {
+      handleHttpError(res, "Usuario no encontrado", 404);
+      return;
+    }
+
+    const companyData =
+      user.role === "guest" && user.companyOwner
+        ? user.companyOwner.company
+        : user.company;
+
+    res.json({
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        surnames: user.surnames,
+        nif: user.nif,
+        address: user.address,
+        company: companyData,
+        logo: user.logo,
+      },
+    });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -327,17 +366,17 @@ const deleteUser = async (req, res) => {
 
     if (soft) {
       await user.delete();
-      return res.json({ message: "Usuario eliminado (soft delete)" });
+      res.json({ message: "Usuario eliminado (soft delete)" });
     } else {
       const result = await User.deleteOne({ _id: userId });
       if (!result.deletedCount) {
         return handleHttpError(res, "Usuario no encontrado", 404);
       }
-      return res.json({ message: "Usuario eliminado (hard delete)" });
+      res.json({ message: "Usuario eliminado (hard delete)" });
     }
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -349,34 +388,39 @@ const deleteUser = async (req, res) => {
  * ==================================================================================== */
 const inviteUser = async (req, res) => {
   const { email } = req.body;
-  if (!email) return handleHttpError(res, "El email es obligatorio", 400);
+  if (!email) {
+    handleHttpError(res, "El email es obligatorio", 400);
+    return;
+  }
+
   try {
     const inviter = await User.findById(req.user._id);
-    if (!inviter) return handleHttpError(res, "Invitador no encontrado", 404);
+    if (!inviter) {
+      handleHttpError(res, "Invitador no encontrado", 404);
+      return;
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return handleHttpError(res, "El usuario ya existe", 409);
+      handleHttpError(res, "El usuario ya existe", 409);
+      return;
     }
 
-    const tempPassword = Math.random().toString(36).slice(-8); // 8 caracteres
+    const tempPassword = Math.random().toString(36).slice(-8);
     const hashedPassword = await encrypt(tempPassword);
 
     const newUser = new User({
       email,
       password: hashedPassword,
       role: "guest",
-      company: { ...inviter.company }, // copia superficial de la empresa
+      companyOwner: inviter._id,
     });
 
     await newUser.save();
-    return res.json({
-      message: "Usuario invitado correctamente",
-      tempPassword,
-    });
+    res.json({ message: "Usuario invitado correctamente", tempPassword });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -387,7 +431,8 @@ const inviteUser = async (req, res) => {
  *  2) Crea un JWT especial con flag recover y lo devuelve (o se enviaría por email)
  * ==================================================================================== */
 const requestPasswordRecovery = async (req, res) => {
-  const { email } = req.body;
+  const data = matchedData(req);
+  const { email } = data;
   try {
     const user = await User.findOne({ email });
     if (!user) return handleHttpError(res, "Usuario no encontrado", 404);
@@ -397,13 +442,13 @@ const requestPasswordRecovery = async (req, res) => {
     await user.save();
 
     const recoveryToken = await tokenSignRecovery(user);
-    return res.json({
+    res.json({
       message: "Código de recuperación enviado",
       recoveryToken,
     });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 
@@ -415,7 +460,8 @@ const requestPasswordRecovery = async (req, res) => {
  *  • Hashea la nueva contraseña y limpia el código
  * ==================================================================================== */
 const resetPassword = async (req, res) => {
-  const { code, newPassword } = req.body;
+  const data = matchedData(req);
+  const { code, newPassword } = data;
   try {
     const user = await User.findById(req.user._id);
     if (!user) return handleHttpError(res, "Usuario no encontrado", 404);
@@ -428,10 +474,10 @@ const resetPassword = async (req, res) => {
     user.password = hashedPassword;
     user.passwordRecoveryCode = ""; // limpia código
     await user.save();
-    return res.json({ message: "Contraseña actualizada correctamente" });
+    res.json({ message: "Contraseña actualizada correctamente" });
   } catch (error) {
     console.error(error);
-    return handleHttpError(res, "Error interno del servidor", 500);
+    handleHttpError(res, "Error interno del servidor", 500);
   }
 };
 

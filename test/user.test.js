@@ -451,7 +451,7 @@ describe("Actualización de datos de la compañía", () => {
       name: "Ana",
       surnames: "López",
       nif: "12345678Z",
-      role: "autonomo",
+      isAutonomo: true,
       address: {
         street: "Calle Libre",
         number: 7,
@@ -721,9 +721,28 @@ describe("Invitación de usuario (/api/users/invite)", () => {
     const invitedUser = await UserModel.findOne({ email: "nuevo@ejemplo.com" });
     expect(invitedUser).toBeDefined();
     expect(invitedUser.role).toBe("guest");
-    expect(invitedUser.company.cif).toBe("B12345678");
-    expect(invitedUser.company.name).toBe("Mi Empresa");
-    expect(invitedUser.company.street).toBe("Calle Empresa");
+    expect(invitedUser.companyOwner.toString()).toBe(inviter._id.toString());
+  });
+
+  it("El invitado ve los datos de la compañía del invitador en su perfil", async () => {
+    const invitedUser =
+      (await UserModel.findOne({ email: "nuevo@ejemplo.com" })) ||
+      (await request(app)
+        .post("/api/users/invite")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ email: "nuevo@ejemplo.com" })
+        .then(() => UserModel.findOne({ email: "nuevo@ejemplo.com" })));
+
+    const invitedToken = await tokenSign(invitedUser);
+
+    const resProfile = await request(app)
+      .get("/api/users/me")
+      .set("Authorization", `Bearer ${invitedToken}`)
+      .expect(200);
+
+    expect(resProfile.body.user.company.cif).toBe("B12345678");
+    expect(resProfile.body.user.company.name).toBe("Mi Empresa");
+    expect(resProfile.body.user.company.street).toBe("Calle Empresa");
   });
 
   it("Error 400 si no se proporciona el email", async () => {

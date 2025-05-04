@@ -33,6 +33,7 @@ beforeEach(async () => {
     email: "user1@test.com",
     password: "123456",
     role: "user",
+    isAutonomo: false,
     company: { cif },
   });
   token = await tokenSign(user);
@@ -42,6 +43,7 @@ beforeEach(async () => {
     email: "user2@test.com",
     password: "654321",
     role: "user",
+    isAutonomo: false,
     company: { cif },
   });
   token2 = await tokenSign(user2);

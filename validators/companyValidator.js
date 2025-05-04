@@ -1,7 +1,7 @@
 const { check, validationResult } = require("express-validator");
 const User = require("../models/User");
 
-// Validador principal (sólo se ejecuta si el usuario no es autonomo)
+// Validador principal (sólo se ejecuta si el usuario no es autónomo)
 exports.validateCompanyData = [
   async (req, res, next) => {
     try {
@@ -10,11 +10,12 @@ exports.validateCompanyData = [
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
 
-      // Si el usuario es "autonomo", se salta la validación
-      if (user.role === "autonomo") {
+      // Si el usuario es autónomo (flag booleano), se salta la validación
+      if (user.isAutonomo === true) {
         return next();
       }
 
+      // Para el resto de usuarios, validamos los campos obligatorios:
       await check("companyName", "El nombre de la compañía es obligatorio")
         .notEmpty()
         .run(req);
@@ -37,7 +38,6 @@ exports.validateCompanyData = [
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-
       return next();
     } catch (err) {
       console.error(err);
